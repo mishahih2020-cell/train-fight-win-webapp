@@ -62,3 +62,23 @@ export interface PurchaseRecord {
   status: 'paid'
   image: string
 }
+
+export type WorkoutType = 'Муай-тай' | 'Кикбоксинг' | 'ОФП' | 'Спарринг' | 'Растяжка'
+
+export type Intensity = 'Легко' | 'Средне' | 'Тяжело'
+
+export interface WorkoutEntry {
+  id: string
+  date: string // yyyy-mm-dd, local calendar day
+  type: WorkoutType
+  durationMin: number
+  intensity: Intensity
+  note?: string
+  xp: number
+}
+
+export interface WeightEntry {
+  id: string
+  date: string // yyyy-mm-dd
+  value: number // kg
+}

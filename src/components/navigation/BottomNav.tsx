@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router-dom'
-import { BookOpen, CircleDot, PlayCircle, User } from 'lucide-react'
+import { BookOpen, CircleDot, NotebookPen, PlayCircle, User } from 'lucide-react'
 
 const tabs = [
   { to: '/', label: 'Уроки', icon: PlayCircle, end: true },
   { to: '/courses', label: 'Курсы', icon: BookOpen, end: false },
+  { to: '/diary', label: 'Дневник', icon: NotebookPen, end: false },
   { to: '/wheel', label: 'Колесо', icon: CircleDot, end: false },
   { to: '/profile', label: 'Профиль', icon: User, end: false },
 ]

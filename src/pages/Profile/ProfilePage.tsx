@@ -1,12 +1,12 @@
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, History, Settings, Trophy } from 'lucide-react'
+import { ChevronRight, Flame, History, NotebookPen, Settings, Trophy } from 'lucide-react'
 import { AthletePhoto } from '@/components/ui/AthletePhoto'
 import { IconButton } from '@/components/ui/IconButton'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { ProfileStats } from '@/components/profile/ProfileStats'
 import { getCourseById } from '@/data/courses'
 import { DEFAULT_USER } from '@/data/user'
-import { getAchievementProgress } from '@/lib/selectors'
+import { getAchievementProgress, getTrainingStreak } from '@/lib/selectors'
 import { useAppState } from '@/context/AppStateContext'
 
 export function ProfilePage() {
@@ -15,6 +15,7 @@ export function ProfilePage() {
 
   const unlockedAchievements = getAchievementProgress(state, level).filter((a) => a.unlocked).length
   const viewedLessonsCount = state.viewedLessons.length
+  const streak = getTrainingStreak(state.workoutLog)
 
   return (
     <div className="pb-28">
@@ -28,7 +29,15 @@ export function ProfilePage() {
         <div className="min-w-0 flex-1">
           <p className="truncate text-[17px] font-extrabold text-white">{DEFAULT_USER.name}</p>
           <p className="text-[12px] text-muted">{DEFAULT_USER.status}</p>
-          <p className="mt-0.5 text-[13px] font-extrabold text-lime">Уровень {level}</p>
+          <div className="mt-0.5 flex items-center gap-3">
+            <p className="text-[13px] font-extrabold text-lime">Уровень {level}</p>
+            {streak > 0 && (
+              <span className="flex items-center gap-1 text-[12px] font-bold text-white">
+                <Flame size={13} className="text-lime" fill="currentColor" />
+                {streak}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -84,6 +93,7 @@ export function ProfilePage() {
       </div>
 
       <div className="mt-7 flex flex-col gap-2 px-5">
+        <ProfileListItem icon={<NotebookPen size={18} />} label="Дневник тренировок" onClick={() => navigate('/diary')} />
         <ProfileListItem icon={<History size={18} />} label="История покупок" onClick={() => navigate('/purchase-history')} />
         <ProfileListItem
           icon={<Trophy size={18} />}

@@ -1,11 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react'
 import { getCourseById } from '@/data/courses'
+import { seedWeightLog, seedWorkoutLog } from '@/data/diarySeed'
 import { getLevelInfo } from '@/data/levels'
 import { getLessonById } from '@/data/lessons'
 import { seedPurchaseHistory } from '@/data/purchaseHistory'
 import { WHEEL_COOLDOWN_HOURS, wheelSegments } from '@/data/wheel'
 import { XP_RULES } from '@/data/xpRules'
-import type { PurchaseRecord, WheelSegment } from '@/types'
+import type { Intensity, PurchaseRecord, WeightEntry, WheelSegment, WorkoutEntry, WorkoutType } from '@/types'
 
 export interface LevelUpInfo {
   newLevel: number
@@ -31,13 +32,14 @@ export interface AppState {
   purchasedCourses: string[]
   courseProgress: Record<string, number>
   purchaseHistory: PurchaseRecord[]
-  trainingStreak: number
+  workoutLog: WorkoutEntry[]
+  weightLog: WeightEntry[]
   wheel: WheelState
   settings: Settings
   levelUp: LevelUpInfo | null
 }
 
-const STORAGE_KEY = 'tfw-app-state-v2'
+const STORAGE_KEY = 'tfw-app-state-v3'
 
 const initialState: AppState = {
   // 1000 (level 1) + 1500 (level 2) + 1250 into level 3 → matches the "Уровень 3 · 1 250 / 2 000 XP" reference screen.
@@ -46,7 +48,8 @@ const initialState: AppState = {
   purchasedCourses: ['muay-thai-basic', 'kickboxing-technique'],
   courseProgress: { 'muay-thai-basic': 12, 'kickboxing-technique': 8 },
   purchaseHistory: seedPurchaseHistory,
-  trainingStreak: 7,
+  workoutLog: seedWorkoutLog,
+  weightLog: seedWeightLog,
   wheel: { lastSpinAt: null, freeRespin: false, pendingReward: null, rewardClaimed: true },
   settings: { notifications: true, language: 'Русский', theme: 'Тёмная' },
   levelUp: null,
@@ -60,6 +63,9 @@ type Action =
   | { type: 'CLAIM_WHEEL_REWARD' }
   | { type: 'DISMISS_LEVEL_UP' }
   | { type: 'TOGGLE_NOTIFICATIONS' }
+  | { type: 'LOG_WORKOUT'; workout: { type: WorkoutType; durationMin: number; intensity: Intensity; note?: string } }
+  | { type: 'DELETE_WORKOUT'; id: string }
+  | { type: 'LOG_WEIGHT'; value: number }
 
 function computeLevelUp(oldXp: number, newXp: number): LevelUpInfo | null {
   const oldInfo = getLevelInfo(oldXp)
@@ -71,6 +77,10 @@ function computeLevelUp(oldXp: number, newXp: number): LevelUpInfo | null {
 function formatToday(): string {
   const d = new Date()
   return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10)
 }
 
 function reducer(state: AppState, action: Action): AppState {
@@ -168,6 +178,40 @@ function reducer(state: AppState, action: Action): AppState {
     case 'TOGGLE_NOTIFICATIONS':
       return { ...state, settings: { ...state.settings, notifications: !state.settings.notifications } }
 
+    case 'LOG_WORKOUT': {
+      const entry: WorkoutEntry = {
+        id: `workout-${Date.now()}`,
+        date: todayIso(),
+        xp: XP_RULES.workoutLog,
+        ...action.workout,
+      }
+      const finalXp = state.xp + entry.xp
+
+      return {
+        ...state,
+        xp: finalXp,
+        workoutLog: [entry, ...state.workoutLog],
+        levelUp: computeLevelUp(state.xp, finalXp),
+      }
+    }
+
+    case 'DELETE_WORKOUT':
+      return { ...state, workoutLog: state.workoutLog.filter((w) => w.id !== action.id) }
+
+    case 'LOG_WEIGHT': {
+      const entry: WeightEntry = { id: `weight-${Date.now()}`, date: todayIso(), value: action.value }
+      const hadToday = state.weightLog.some((w) => w.date === entry.date)
+      const withoutToday = state.weightLog.filter((w) => w.date !== entry.date)
+      const finalXp = state.xp + (hadToday ? 0 : XP_RULES.weightLog)
+
+      return {
+        ...state,
+        xp: finalXp,
+        weightLog: [...withoutToday, entry],
+        levelUp: computeLevelUp(state.xp, finalXp),
+      }
+    }
+
     default:
       return state
   }
@@ -198,6 +242,9 @@ interface AppStateContextValue {
   claimWheelReward: () => void
   dismissLevelUp: () => void
   toggleNotifications: () => void
+  logWorkout: (workout: { type: WorkoutType; durationMin: number; intensity: Intensity; note?: string }) => void
+  deleteWorkout: (id: string) => void
+  logWeight: (value: number) => void
 }
 
 const AppStateContext = createContext<AppStateContextValue | null>(null)
@@ -228,6 +275,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       claimWheelReward: () => dispatch({ type: 'CLAIM_WHEEL_REWARD' }),
       dismissLevelUp: () => dispatch({ type: 'DISMISS_LEVEL_UP' }),
       toggleNotifications: () => dispatch({ type: 'TOGGLE_NOTIFICATIONS' }),
+      logWorkout: (workout) => dispatch({ type: 'LOG_WORKOUT', workout }),
+      deleteWorkout: (id) => dispatch({ type: 'DELETE_WORKOUT', id }),
+      logWeight: (value) => dispatch({ type: 'LOG_WEIGHT', value }),
     }
   }, [state])
 

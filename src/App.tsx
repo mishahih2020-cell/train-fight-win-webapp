@@ -8,6 +8,8 @@ import { LessonsPage } from '@/pages/Lessons/LessonsPage'
 import { CoursesPage } from '@/pages/Courses/CoursesPage'
 import { CourseDetailPage } from '@/pages/CourseDetail/CourseDetailPage'
 import { CheckoutPage } from '@/pages/Checkout/CheckoutPage'
+import { DiaryPage } from '@/pages/Diary/DiaryPage'
+import { WeightPage } from '@/pages/Diary/WeightPage'
 import { WheelPage } from '@/pages/Wheel/WheelPage'
 import { ProfilePage } from '@/pages/Profile/ProfilePage'
 import { AchievementsPage } from '@/pages/Achievements/AchievementsPage'
@@ -46,11 +48,13 @@ function AppRoutes() {
       <Route element={<TabLayout />}>
         <Route path="/" element={<LessonsPage />} />
         <Route path="/courses" element={<CoursesPage />} />
+        <Route path="/diary" element={<DiaryPage />} />
         <Route path="/wheel" element={<WheelPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Route>
       <Route path="/courses/:courseId" element={<CourseDetailPage />} />
       <Route path="/checkout/:courseId" element={<CheckoutPage />} />
+      <Route path="/diary/weight" element={<WeightPage />} />
       <Route path="/achievements" element={<AchievementsPage />} />
       <Route path="/purchase-history" element={<PurchaseHistoryPage />} />
       <Route path="/settings" element={<SettingsPage />} />
