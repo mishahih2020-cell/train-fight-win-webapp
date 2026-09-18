@@ -17,7 +17,7 @@ export function SettingsPage() {
       <Header title="Настройки" />
 
       <div className="px-5 pt-2">
-        <button className="press flex w-full items-center gap-3 rounded-md border border-border bg-graphite p-3.5 text-left">
+        <button className="press flex w-full items-center gap-3 rounded-md surface p-3.5 text-left">
           <AthletePhoto focal="top" fade="none" className="h-12 w-12 shrink-0 rounded-pill" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[14px] font-bold text-white">{DEFAULT_USER.name}</p>
@@ -26,10 +26,15 @@ export function SettingsPage() {
           <ChevronRight size={16} className="text-muted-2" />
         </button>
 
-        <div className="mt-4 flex flex-col gap-2">
+        <p className="mb-2 mt-6 px-1 text-[11px] font-bold uppercase tracking-wide text-muted-2">Приложение</p>
+        <div className="flex flex-col gap-2">
           <Row icon={<Bell size={18} />} label="Уведомления" right={<Switch checked={state.settings.notifications} onChange={toggleNotifications} />} />
           <Row icon={<Globe size={18} />} label="Язык" value={state.settings.language} onClick={() => showToast('Доступен только русский язык')} />
           <Row icon={<Moon size={18} />} label="Тема" value={state.settings.theme} onClick={() => showToast('Доступна только тёмная тема')} />
+        </div>
+
+        <p className="mb-2 mt-6 px-1 text-[11px] font-bold uppercase tracking-wide text-muted-2">Помощь</p>
+        <div className="flex flex-col gap-2">
           <Row icon={<HelpCircle size={18} />} label="Поддержка" onClick={() => showToast('Поддержка: @trainfightwin_support')} />
           <Row icon={<Info size={18} />} label="О приложении" onClick={() => showToast('TRAIN FIGHT WIN · версия 1.0 (демо)')} />
         </div>
@@ -41,6 +46,8 @@ export function SettingsPage() {
           <LogOut size={18} />
           <span className="text-[14px] font-bold">Выйти</span>
         </button>
+
+        <p className="mt-8 text-center text-[11px] text-muted-2">TRAIN FIGHT WIN · версия 1.0</p>
       </div>
     </div>
   )
@@ -73,11 +80,11 @@ function Row({
   )
 
   if (!onClick) {
-    return <div className="flex items-center gap-3 rounded-md border border-border bg-graphite px-4 py-3.5">{content}</div>
+    return <div className="flex items-center gap-3 rounded-md surface px-4 py-3.5">{content}</div>
   }
 
   return (
-    <button onClick={onClick} className="press flex items-center gap-3 rounded-md border border-border bg-graphite px-4 py-3.5">
+    <button onClick={onClick} className="press flex items-center gap-3 rounded-md surface px-4 py-3.5">
       {content}
     </button>
   )

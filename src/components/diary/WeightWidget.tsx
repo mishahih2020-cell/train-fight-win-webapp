@@ -17,7 +17,7 @@ export function WeightWidget({
   const delta = latest && prev ? Math.round((latest.value - prev.value) * 10) / 10 : null
 
   return (
-    <div className="rounded-lg border border-border bg-graphite p-4">
+    <div className="rounded-lg surface p-4">
       <div className="flex items-start justify-between">
         <button onClick={onOpen} className="press flex-1 text-left">
           <p className="text-[11px] font-bold uppercase tracking-wide text-muted">Вес</p>

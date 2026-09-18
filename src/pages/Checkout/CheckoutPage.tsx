@@ -39,7 +39,7 @@ export function CheckoutPage() {
       <Header title="Покупка курса" />
 
       <div className="px-5 pt-4">
-        <div className="flex items-center gap-3 rounded-md border border-border bg-graphite p-3">
+        <div className="flex items-center gap-3 rounded-md surface p-3">
           <AthletePhoto focal="top" fade="none" className="h-14 w-14 shrink-0 rounded-sm" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[14px] font-bold text-white">{course.shortTitle}</p>
@@ -49,13 +49,13 @@ export function CheckoutPage() {
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between rounded-md border border-border bg-graphite px-4 py-3.5">
+        <div className="mt-3 flex items-center justify-between rounded-md surface px-4 py-3.5">
           <span className="text-[13px] font-semibold text-muted">Итого</span>
           <span className="text-[20px] font-extrabold text-white">{formatPrice(course.price)}</span>
         </div>
 
         <p className="mt-6 px-1 text-[12px] font-bold uppercase tracking-wide text-muted">Способ оплаты</p>
-        <button className="press mt-2 flex w-full items-center justify-between rounded-md border border-border bg-graphite px-4 py-3.5 text-left">
+        <button className="press mt-2 flex w-full items-center justify-between rounded-md surface px-4 py-3.5 text-left">
           <span className="flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-white/8 text-lime">
               <Landmark size={18} />
@@ -68,7 +68,7 @@ export function CheckoutPage() {
           <ChevronRight size={16} className="text-muted-2" />
         </button>
 
-        <div className="mt-3 rounded-md border border-border bg-graphite p-4">
+        <div className="mt-3 rounded-md surface p-4">
           <div className="flex items-center gap-2 text-lime">
             <ShieldCheck size={18} />
             <span className="text-[13px] font-bold text-white">Безопасная оплата</span>

@@ -14,7 +14,7 @@ export function LessonCard({
   onOpen: () => void
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-md border border-border bg-graphite p-2.5">
+    <div className="flex items-center gap-3 rounded-md surface p-2.5">
       <AthletePhoto focal="top" fade="none" className="h-16 w-16 shrink-0 rounded-sm">
         <div className="absolute inset-0 flex items-center justify-center bg-black/25">
           <Play size={18} className="text-white" fill="white" />

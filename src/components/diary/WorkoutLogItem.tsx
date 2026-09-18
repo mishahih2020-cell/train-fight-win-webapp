@@ -16,7 +16,7 @@ export function WorkoutLogItem({ entry, onDelete }: { entry: WorkoutEntry; onDel
   const Icon = typeIcon[entry.type]
 
   return (
-    <div className="flex items-start gap-3 rounded-md border border-border bg-graphite p-3.5">
+    <div className="flex items-start gap-3 rounded-md surface p-3.5">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-lime/10 text-lime">
         <Icon size={18} />
       </div>

@@ -75,7 +75,7 @@ export function ProfilePage() {
               <button
                 key={id}
                 onClick={() => navigate(`/courses/${id}`)}
-                className="press flex items-center gap-3 rounded-md border border-border bg-graphite p-3 text-left"
+                className="press flex items-center gap-3 rounded-md surface p-3 text-left"
               >
                 <AthletePhoto focal="top" fade="none" className="h-12 w-12 shrink-0 rounded-sm" />
                 <div className="min-w-0 flex-1">
@@ -118,7 +118,7 @@ function ProfileListItem({
   return (
     <button
       onClick={onClick}
-      className="press flex items-center gap-3 rounded-md border border-border bg-graphite px-4 py-3.5"
+      className="press flex items-center gap-3 rounded-md surface px-4 py-3.5"
     >
       <span className="text-lime">{icon}</span>
       <span className="flex-1 text-left text-[14px] font-semibold text-white">{label}</span>

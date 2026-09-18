@@ -60,7 +60,7 @@ export function WeightPage() {
           ))}
         </div>
 
-        <div className="mt-5 rounded-lg border border-border bg-graphite p-4">
+        <div className="mt-5 rounded-lg surface p-4">
           <Sparkline values={filtered.map((e) => e.value)} height={120} showDots />
         </div>
 
@@ -74,7 +74,7 @@ export function WeightPage() {
             const prevEntry = arr[i + 1]
             const delta = prevEntry ? Math.round((entry.value - prevEntry.value) * 10) / 10 : null
             return (
-              <div key={entry.id} className="flex items-center justify-between rounded-md border border-border bg-graphite px-4 py-3">
+              <div key={entry.id} className="flex items-center justify-between rounded-md surface px-4 py-3">
                 <span className="text-[13px] font-semibold text-muted">{formatDiaryDate(entry.date)}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-[15px] font-extrabold text-white">{entry.value.toFixed(1)} кг</span>
@@ -89,7 +89,7 @@ export function WeightPage() {
             )
           })}
           {filtered.length === 0 && (
-            <p className="rounded-md border border-border bg-graphite px-4 py-6 text-center text-[13px] text-muted">
+            <p className="rounded-md surface px-4 py-6 text-center text-[13px] text-muted">
               Нет записей за этот период.
             </p>
           )}

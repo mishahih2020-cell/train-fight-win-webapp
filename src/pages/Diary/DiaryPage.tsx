@@ -33,7 +33,7 @@ export function DiaryPage() {
       </div>
 
       <div className="mt-4 flex flex-col gap-3 px-5">
-        <div className="flex items-start gap-3 rounded-md border border-border bg-graphite p-3.5">
+        <div className="flex items-start gap-3 rounded-md surface p-3.5">
           <Lightbulb size={18} className="mt-0.5 shrink-0 text-lime" />
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wide text-muted">Совет дня</p>
@@ -54,15 +54,15 @@ export function DiaryPage() {
         />
 
         <div className="grid grid-cols-3 gap-2">
-          <div className="rounded-md border border-border bg-graphite py-3 text-center">
+          <div className="rounded-md surface py-3 text-center">
             <p className="text-[20px] font-extrabold text-white">{weekStats.count}</p>
             <p className="text-[11px] text-muted">тренировок</p>
           </div>
-          <div className="rounded-md border border-border bg-graphite py-3 text-center">
+          <div className="rounded-md surface py-3 text-center">
             <p className="text-[20px] font-extrabold text-white">{weekStats.minutes}</p>
             <p className="text-[11px] text-muted">минут</p>
           </div>
-          <div className="rounded-md border border-border bg-graphite py-3 text-center">
+          <div className="rounded-md surface py-3 text-center">
             <p className="text-[20px] font-extrabold text-white">{streak}</p>
             <p className="text-[11px] text-muted">дней подряд</p>
           </div>
@@ -71,7 +71,7 @@ export function DiaryPage() {
         <div className="mt-2">
           <p className="mb-2.5 text-[15px] font-extrabold text-white">История тренировок</p>
           {state.workoutLog.length === 0 ? (
-            <p className="rounded-md border border-border bg-graphite px-4 py-6 text-center text-[13px] text-muted">
+            <p className="rounded-md surface px-4 py-6 text-center text-[13px] text-muted">
               Пока нет записей. Запиши первую тренировку — это +{'30'} XP.
             </p>
           ) : (

@@ -29,7 +29,7 @@ export function LogWeightModal({
       <h2 className="text-[19px] font-extrabold uppercase tracking-tight">Записать вес</h2>
       <p className="mt-1 text-[13px] text-muted">Сегодняшнее значение обновит запись за сегодня.</p>
 
-      <div className="mt-6 flex items-center justify-center gap-2 rounded-md border border-border bg-graphite px-4 py-5">
+      <div className="mt-6 flex items-center justify-center gap-2 rounded-md surface px-4 py-5">
         <input
           autoFocus
           inputMode="decimal"

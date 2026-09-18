@@ -39,7 +39,7 @@ export function LogWorkoutModal({
       </div>
 
       <p className="mt-5 text-[12px] font-bold uppercase tracking-wide text-muted">Длительность</p>
-      <div className="mt-2 flex items-center justify-between rounded-md border border-border bg-graphite px-3 py-2.5">
+      <div className="mt-2 flex items-center justify-between rounded-md surface px-3 py-2.5">
         <button
           onClick={() => setDuration((d) => Math.max(10, d - 5))}
           aria-label="Меньше"
@@ -70,7 +70,7 @@ export function LogWorkoutModal({
         onChange={(e) => setNote(e.target.value)}
         placeholder="Что делал на тренировке..."
         rows={2}
-        className="mt-2 w-full resize-none rounded-md border border-border bg-graphite px-3.5 py-3 text-[14px] text-white outline-none placeholder:text-muted-2"
+        className="mt-2 w-full resize-none rounded-md surface px-3.5 py-3 text-[14px] text-white outline-none placeholder:text-muted-2"
       />
 
       <Button className="mt-6" onClick={handleSubmit}>

@@ -12,7 +12,7 @@ export function CourseCard({ course, owned }: { course: Course; owned: boolean }
   const open = () => navigate(`/courses/${course.id}`)
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-graphite">
+    <div className="overflow-hidden rounded-lg surface">
       <button onClick={open} className="press block w-full text-left">
         <AthletePhoto focal="top" fade="bottom" icon={Swords} iconSize={84} className="h-40 w-full">
           <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">

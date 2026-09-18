@@ -89,7 +89,7 @@ export function CourseDetailPage() {
           <TrustItem icon={<Headset size={18} />} label="Поддержка тренера" />
         </div>
 
-        <div className="mt-7 flex gap-1.5 rounded-pill border border-border bg-graphite p-1">
+        <div className="mt-7 flex gap-1.5 rounded-pill surface p-1">
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -109,7 +109,7 @@ export function CourseDetailPage() {
               {course.modules.map((m) => (
                 <div
                   key={m.id}
-                  className="flex items-center gap-3 rounded-md border border-border bg-graphite px-4 py-3.5"
+                  className="flex items-center gap-3 rounded-md surface px-4 py-3.5"
                 >
                   <span className="text-[13px] font-extrabold text-lime">{String(m.number).padStart(2, '0')}</span>
                   <div className="min-w-0 flex-1">
@@ -151,7 +151,7 @@ export function CourseDetailPage() {
 
 function TrustItem({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div className="rounded-md border border-border bg-graphite px-2 py-3 text-center">
+    <div className="rounded-md surface px-2 py-3 text-center">
       <div className="mx-auto flex h-8 w-8 items-center justify-center text-lime">{icon}</div>
       <p className="mt-1.5 text-[10px] font-semibold leading-tight text-muted">{label}</p>
     </div>

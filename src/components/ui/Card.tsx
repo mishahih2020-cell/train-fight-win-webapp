@@ -7,7 +7,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export function Card({ interactive, className = '', children, ...props }: CardProps) {
   return (
     <div
-      className={`rounded-lg border border-border bg-graphite ${interactive ? 'press cursor-pointer' : ''} ${className}`}
+      className={`rounded-lg surface ${interactive ? 'press cursor-pointer' : ''} ${className}`}
       {...props}
     >
       {children}

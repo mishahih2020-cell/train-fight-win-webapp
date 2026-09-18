@@ -92,7 +92,7 @@ export function WheelPage() {
 
 function HowStep({ number, icon, text }: { number: number; icon: React.ReactNode; text: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-md border border-border bg-graphite px-4 py-3">
+    <div className="flex items-center gap-3 rounded-md surface px-4 py-3">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-pill bg-white/8 text-[12px] font-extrabold text-white">
         {number}
       </span>
