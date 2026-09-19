@@ -38,29 +38,30 @@ function useTelegramInit() {
     const webApp = window.Telegram?.WebApp
     if (!webApp) return
 
-    webApp.ready()
-    webApp.setHeaderColor?.('#050708')
-    webApp.setBackgroundColor?.('#050708')
-    webApp.setBottomBarColor?.('#050708')
-
-    // Vertical swipes closing the app mid-scroll is a known Telegram WebApp gesture
-    // conflict — kill it explicitly, and prefer true fullscreen (which disables the
-    // gesture entirely) over the older expand() on clients that support it.
-    try {
-      webApp.disableVerticalSwipes?.()
-    } catch {
-      // older client without swipe control support
+    // Older Telegram clients throw synchronously on API calls added in newer Bot
+    // API versions (fullscreen, swipe control, bottom bar color) — a single
+    // uncaught throw here kills the whole React render, producing a black screen.
+    // Every call is isolated so one unsupported method can't break the rest.
+    const safe = (fn?: () => void) => {
+      try {
+        fn?.()
+      } catch {
+        // unsupported on this client/Bot API version — ignore
+      }
     }
 
-    try {
+    safe(() => webApp.ready())
+    safe(() => webApp.setHeaderColor?.('#050708'))
+    safe(() => webApp.setBackgroundColor?.('#050708'))
+    safe(() => webApp.setBottomBarColor?.('#050708'))
+    safe(() => webApp.disableVerticalSwipes?.())
+    safe(() => {
       if (typeof webApp.requestFullscreen === 'function') {
         webApp.requestFullscreen()
       } else {
         webApp.expand()
       }
-    } catch {
-      webApp.expand()
-    }
+    })
   }, [])
 }
 
