@@ -3,7 +3,6 @@ import { HashRouter, Route, Routes } from 'react-router-dom'
 import { AppStateProvider } from '@/context/AppStateContext'
 import { ToastProvider } from '@/context/ToastContext'
 import { TabLayout } from '@/components/navigation/TabLayout'
-import { AppBackground } from '@/components/ui/AppBackground'
 import { LevelUpModal } from '@/components/ui/LevelUpModal'
 import { LessonsPage } from '@/pages/Lessons/LessonsPage'
 import { CoursesPage } from '@/pages/Courses/CoursesPage'
@@ -23,7 +22,6 @@ declare global {
       WebApp?: {
         ready: () => void
         expand: () => void
-        requestFullscreen?: () => void
         disableVerticalSwipes?: () => void
         setHeaderColor?: (color: string) => void
         setBackgroundColor?: (color: string) => void
@@ -55,13 +53,10 @@ function useTelegramInit() {
     safe(() => webApp.setBackgroundColor?.('#050708'))
     safe(() => webApp.setBottomBarColor?.('#050708'))
     safe(() => webApp.disableVerticalSwipes?.())
-    safe(() => {
-      if (typeof webApp.requestFullscreen === 'function') {
-        webApp.requestFullscreen()
-      } else {
-        webApp.expand()
-      }
-    })
+    // requestFullscreen() is a newer, less battle-tested API and triggers a
+    // native resize/transition in the Telegram client — expand() is the
+    // long-supported, safe way to use the full viewport.
+    safe(() => webApp.expand())
   }, [])
 }
 
@@ -91,7 +86,6 @@ function App() {
   return (
     <AppStateProvider>
       <ToastProvider>
-        <AppBackground />
         <HashRouter>
           <AppRoutes />
           <LevelUpModal />

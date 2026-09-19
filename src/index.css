@@ -83,9 +83,20 @@
 
   html,
   body {
-    background: var(--color-bg);
+    background-color: var(--color-bg);
     color: var(--color-white);
     overscroll-behavior-y: none;
+  }
+
+  body {
+    /* Plain background-image on the real root element — always paints behind
+       its own content, no stacking/positioning tricks that could render
+       above the UI on a quirky WebView. */
+    background-image:
+      radial-gradient(70% 40% at 50% 0%, rgba(198, 255, 69, 0.09) 0%, transparent 60%),
+      radial-gradient(90% 60% at 85% 100%, rgba(76, 138, 63, 0.08) 0%, transparent 55%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
   }
 
   body {
