@@ -15,6 +15,16 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
+    <div
+      id="boot-marker"
+      style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#ff5a5a;color:#050708;font:700 11px/1.6 sans-serif;text-align:center;padding:4px 0;"
+    >
+      HTML OK · ожидание JS...
+    </div>
+    <script>
+      document.getElementById('boot-marker').style.background = '#c6ff45'
+      document.getElementById('boot-marker').textContent = 'JS OK · монтирую приложение...'
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
