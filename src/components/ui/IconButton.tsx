@@ -1,19 +1,24 @@
-import { type ButtonHTMLAttributes, type ReactNode } from 'react'
+import type { ButtonHTMLAttributes } from 'react'
 
 interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  icon: ReactNode
-  variant?: 'ghost' | 'solid'
+  size?: number
+  variant?: 'card' | 'ghost' | 'accent'
 }
 
-export function IconButton({ icon, variant = 'ghost', className = '', ...props }: IconButtonProps) {
+const VARIANT_CLASSES: Record<NonNullable<IconButtonProps['variant']>, string> = {
+  card: 'bg-[var(--color-card)] border border-[var(--color-divider)] text-[var(--color-text)]',
+  ghost: 'bg-transparent text-[var(--color-text)]',
+  accent: 'gradient-accent text-white',
+}
+
+export function IconButton({ size = 40, variant = 'card', className = '', children, ...rest }: IconButtonProps) {
   return (
     <button
-      className={`press flex h-10 w-10 shrink-0 items-center justify-center rounded-pill ${
-        variant === 'ghost' ? 'bg-white/8 text-white backdrop-blur-sm' : 'bg-graphite border border-border text-white'
-      } ${className}`}
-      {...props}
+      className={`press flex shrink-0 items-center justify-center rounded-full ${VARIANT_CLASSES[variant]} ${className}`}
+      style={{ width: size, height: size }}
+      {...rest}
     >
-      {icon}
+      {children}
     </button>
   )
 }

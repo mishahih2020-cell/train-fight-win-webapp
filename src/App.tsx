@@ -1,20 +1,19 @@
 import { useEffect } from 'react'
 import { HashRouter, Route, Routes } from 'react-router-dom'
 import { AppStateProvider } from '@/context/AppStateContext'
-import { ToastProvider } from '@/context/ToastContext'
 import { TabLayout } from '@/components/navigation/TabLayout'
-import { LevelUpModal } from '@/components/ui/LevelUpModal'
-import { LessonsPage } from '@/pages/Lessons/LessonsPage'
+import { OnboardingPage } from '@/pages/Onboarding/OnboardingPage'
+import { ProfileSetupPage } from '@/pages/ProfileSetup/ProfileSetupPage'
+import { HomePage } from '@/pages/Home/HomePage'
+import { WorkoutsPage } from '@/pages/Workouts/WorkoutsPage'
+import { CreateWorkoutPage } from '@/pages/Workouts/CreateWorkoutPage'
+import { WorkoutSessionPage } from '@/pages/Workouts/WorkoutSessionPage'
+import { ProgressPage } from '@/pages/Progress/ProgressPage'
+import { NutritionPage } from '@/pages/Nutrition/NutritionPage'
+import { AICoachPage } from '@/pages/AICoach/AICoachPage'
 import { CoursesPage } from '@/pages/Courses/CoursesPage'
-import { CourseDetailPage } from '@/pages/CourseDetail/CourseDetailPage'
-import { CheckoutPage } from '@/pages/Checkout/CheckoutPage'
-import { DiaryPage } from '@/pages/Diary/DiaryPage'
-import { WeightPage } from '@/pages/Diary/WeightPage'
-import { WheelPage } from '@/pages/Wheel/WheelPage'
 import { ProfilePage } from '@/pages/Profile/ProfilePage'
-import { AchievementsPage } from '@/pages/Achievements/AchievementsPage'
-import { PurchaseHistoryPage } from '@/pages/PurchaseHistory/PurchaseHistoryPage'
-import { SettingsPage } from '@/pages/Settings/SettingsPage'
+import { WheelPage } from '@/pages/Wheel/WheelPage'
 
 declare global {
   interface Window {
@@ -37,9 +36,9 @@ function useTelegramInit() {
     if (!webApp) return
 
     // Older Telegram clients throw synchronously on API calls added in newer Bot
-    // API versions (fullscreen, swipe control, bottom bar color) — a single
-    // uncaught throw here kills the whole React render, producing a black screen.
-    // Every call is isolated so one unsupported method can't break the rest.
+    // API versions — a single uncaught throw here would kill the whole React
+    // render, producing a black screen. Every call is isolated so one
+    // unsupported method can't break the rest.
     const safe = (fn?: () => void) => {
       try {
         fn?.()
@@ -49,13 +48,10 @@ function useTelegramInit() {
     }
 
     safe(() => webApp.ready())
-    safe(() => webApp.setHeaderColor?.('#050708'))
-    safe(() => webApp.setBackgroundColor?.('#050708'))
-    safe(() => webApp.setBottomBarColor?.('#050708'))
+    safe(() => webApp.setHeaderColor?.('#0B0B0D'))
+    safe(() => webApp.setBackgroundColor?.('#0B0B0D'))
+    safe(() => webApp.setBottomBarColor?.('#0B0B0D'))
     safe(() => webApp.disableVerticalSwipes?.())
-    // requestFullscreen() is a newer, less battle-tested API and triggers a
-    // native resize/transition in the Telegram client — expand() is the
-    // long-supported, safe way to use the full viewport.
     safe(() => webApp.expand())
   }, [])
 }
@@ -65,19 +61,22 @@ function AppRoutes() {
 
   return (
     <Routes>
+      <Route path="/" element={<OnboardingPage />} />
+      <Route path="/profile-setup" element={<ProfileSetupPage />} />
+
       <Route element={<TabLayout />}>
-        <Route path="/" element={<LessonsPage />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/workouts" element={<WorkoutsPage />} />
+        <Route path="/nutrition" element={<NutritionPage />} />
+        <Route path="/ai-coach" element={<AICoachPage />} />
         <Route path="/courses" element={<CoursesPage />} />
-        <Route path="/diary" element={<DiaryPage />} />
-        <Route path="/wheel" element={<WheelPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Route>
-      <Route path="/courses/:courseId" element={<CourseDetailPage />} />
-      <Route path="/checkout/:courseId" element={<CheckoutPage />} />
-      <Route path="/diary/weight" element={<WeightPage />} />
-      <Route path="/achievements" element={<AchievementsPage />} />
-      <Route path="/purchase-history" element={<PurchaseHistoryPage />} />
-      <Route path="/settings" element={<SettingsPage />} />
+
+      <Route path="/workouts/new" element={<CreateWorkoutPage />} />
+      <Route path="/workouts/session" element={<WorkoutSessionPage />} />
+      <Route path="/progress" element={<ProgressPage />} />
+      <Route path="/wheel" element={<WheelPage />} />
     </Routes>
   )
 }
@@ -85,12 +84,9 @@ function AppRoutes() {
 function App() {
   return (
     <AppStateProvider>
-      <ToastProvider>
-        <HashRouter>
-          <AppRoutes />
-          <LevelUpModal />
-        </HashRouter>
-      </ToastProvider>
+      <HashRouter>
+        <AppRoutes />
+      </HashRouter>
     </AppStateProvider>
   )
 }

@@ -1,40 +1,35 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Manrope', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', -apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif;
 
   /* Backgrounds */
-  --color-bg: #050708;
-  --color-bg-elevated: #0b0f10;
-  --color-graphite: #101514;
-  --color-graphite-2: #141a19;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-strong: rgba(255, 255, 255, 0.14);
+  --color-bg: #0b0b0d;
+  --color-card: #1a1a1e;
+  --color-card-2: #202024;
+  --color-divider: #2a2a2e;
 
   /* Text */
-  --color-white: #f5f7f6;
-  --color-muted: #9aa39f;
-  --color-muted-2: #6b7370;
+  --color-text: #ffffff;
+  --color-text-secondary: #a0a0a0;
+  --color-text-tertiary: #6a6a6e;
 
   /* Accent */
-  --color-lime: #c6ff45;
-  --color-lime-dim: #9fd936;
-  --color-green: #4c8a3f;
-  --color-green-deep: #1c3a1a;
-  --color-red: #ff5a5a;
+  --color-accent: #ff1e2d;
+  --color-accent-2: #ff484b;
+  --color-success: #00c853;
+  --color-warning: #ffa800;
 
   /* Radii */
-  --radius-xs: 8px;
-  --radius-sm: 12px;
-  --radius-md: 16px;
-  --radius-lg: 20px;
-  --radius-xl: 26px;
+  --radius-element: 8px;
+  --radius-button: 12px;
+  --radius-card: 16px;
   --radius-pill: 999px;
 
   --animate-fade-in: fade-in 0.25s ease-out both;
   --animate-slide-up: slide-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-scale-in: scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
-  --animate-pulse-glow: pulse-glow 2.2s ease-in-out infinite;
+  --animate-spin-wheel: spin-wheel 4.2s cubic-bezier(0.15, 0.65, 0.2, 1) both;
 
   @keyframes fade-in {
     from {
@@ -64,13 +59,12 @@
       transform: scale(1);
     }
   }
-  @keyframes pulse-glow {
-    0%,
-    100% {
-      opacity: 0.55;
+  @keyframes spin-wheel {
+    from {
+      transform: rotate(0deg);
     }
-    50% {
-      opacity: 1;
+    to {
+      transform: rotate(var(--wheel-end, 1800deg));
     }
   }
 }
@@ -84,19 +78,8 @@
   html,
   body {
     background-color: var(--color-bg);
-    color: var(--color-white);
+    color: var(--color-text);
     overscroll-behavior-y: none;
-  }
-
-  body {
-    /* Plain background-image on the real root element — always paints behind
-       its own content, no stacking/positioning tricks that could render
-       above the UI on a quirky WebView. */
-    background-image:
-      radial-gradient(70% 40% at 50% 0%, rgba(198, 255, 69, 0.09) 0%, transparent 60%),
-      radial-gradient(90% 60% at 85% 100%, rgba(76, 138, 63, 0.08) 0%, transparent 55%);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
   }
 
   body {
@@ -104,18 +87,21 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* No forced min-height here on purpose: dvh/vh can briefly resolve to 0
-     inside Telegram's WebView while it negotiates the viewport on expand(),
-     which collapses #root to nothing visible. Nothing in this layout
-     actually needs #root to be viewport-tall — BottomNav/Modal are
-     `fixed` and size off the real viewport regardless. */
   #root {
-    max-width: 560px;
+    max-width: 480px;
     margin-inline: auto;
     position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   button {
+    font-family: inherit;
+  }
+
+  input,
+  select,
+  textarea {
     font-family: inherit;
   }
 }
@@ -144,20 +130,46 @@
   }
   .press:active {
     transform: scale(0.96);
-    filter: brightness(0.92);
+    filter: brightness(0.9);
   }
 
-  .text-balance {
-    text-wrap: balance;
+  /* Typography scale — exact spec: size/line-height/weight */
+  .text-h1 {
+    font-size: 32px;
+    line-height: 40px;
+    font-weight: 700;
+  }
+  .text-h2 {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+  }
+  .text-body {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+  }
+  .text-body-secondary {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+  }
+  .text-caption {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+  }
+  .text-button {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
   }
 
-  /* Shared "premium card" depth treatment: a faint top glass highlight plus a
-     soft contact shadow, so cards read as lifted surfaces instead of flat fills. */
-  .surface {
-    background-color: var(--color-graphite);
-    border: 1px solid var(--color-border);
-    box-shadow:
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
-      0 12px 28px -18px rgba(0, 0, 0, 0.85);
+  .card-shadow {
+    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  .gradient-accent {
+    background-image: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-2) 100%);
   }
 }

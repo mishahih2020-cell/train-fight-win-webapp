@@ -1,14 +1,14 @@
-import { type HTMLAttributes } from 'react'
+import type { HTMLAttributes } from 'react'
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  interactive?: boolean
+  padded?: boolean
 }
 
-export function Card({ interactive, className = '', children, ...props }: CardProps) {
+export function Card({ padded = true, className = '', children, ...rest }: CardProps) {
   return (
     <div
-      className={`rounded-lg surface ${interactive ? 'press cursor-pointer' : ''} ${className}`}
-      {...props}
+      className={`card-shadow rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)] ${padded ? 'p-4' : ''} ${className}`}
+      {...rest}
     >
       {children}
     </div>

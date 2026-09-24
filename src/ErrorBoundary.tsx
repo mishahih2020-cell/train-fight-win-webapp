@@ -27,16 +27,16 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
             gap: 12,
             padding: 24,
             textAlign: 'center',
-            color: '#f5f7f6',
-            background: '#050708',
+            color: '#ffffff',
+            background: '#0b0b0d',
             fontFamily: 'sans-serif',
           }}
         >
           <p style={{ fontSize: 16, fontWeight: 700 }}>Не удалось загрузить приложение</p>
-          <p style={{ fontSize: 13, color: '#9aa39f', maxWidth: 280 }}>
+          <p style={{ fontSize: 13, color: '#a0a0a0', maxWidth: 280 }}>
             Попробуй закрыть и открыть WebApp заново. Если не поможет — обнови Telegram.
           </p>
-          <p style={{ fontSize: 11, color: '#6b7370', wordBreak: 'break-word', maxWidth: 320 }}>
+          <p style={{ fontSize: 11, color: '#6a6a6e', wordBreak: 'break-word', maxWidth: 320 }}>
             {this.state.error.message}
           </p>
         </div>

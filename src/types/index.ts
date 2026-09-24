@@ -1,84 +1,108 @@
-export type Direction = 'muay-thai' | 'kickboxing'
+export type Gender = 'male' | 'female'
 
-export type Level = 'beginner' | 'intermediate' | 'advanced'
+export type FitnessLevel = 'Начинающий' | 'Средний' | 'Продвинутый'
 
-export interface Lesson {
+export interface ProfileAnswers {
+  age: number
+  gender: Gender
+  heightCm: number
+  weightKg: number
+  goal: string
+  level: FitnessLevel
+  workoutsPerWeek: string
+}
+
+export interface CalendarDay {
+  date: string // yyyy-mm-dd
+  weekday: string // Пн, Вт, ...
+  dayNumber: number
+}
+
+export interface TodayWorkout {
   id: string
-  number: number
   title: string
-  direction: Direction
-  level: Level
+  subtitle: string
+}
+
+export interface WeightPoint {
+  date: string
+  value: number
+}
+
+export type WorkoutCategory = 'Бойцовские' | 'Силовые' | 'Бег'
+
+export interface Exercise {
+  id: string
+  name: string
   durationMin: number
-  thumbnail: string
-  xp: number
 }
 
-export interface CourseModule {
+export interface Workout {
   id: string
-  number: number
   title: string
-  lessonCount: number
+  category: WorkoutCategory
+  durationMin: number
+  exerciseCount: number
+  dateLabel: string
+  exercises: Exercise[]
 }
+
+export type ProgressTab = 'Вес' | 'Тренировки' | 'Статистика'
+
+export interface ProgressStat {
+  id: string
+  label: string
+  value: string
+  icon: 'chart' | 'clock' | 'trophy' | 'flame'
+}
+
+export interface Meal {
+  id: string
+  name: string
+  title: string
+  time: string
+  kcal: number
+}
+
+export interface MacroStat {
+  id: string
+  label: string
+  value: number
+  total: number
+  unit: string
+  color: string
+}
+
+export interface ChatMessageData {
+  id: string
+  from: 'user' | 'ai'
+  text: string
+}
+
+export interface QuickAction {
+  id: string
+  label: string
+}
+
+export type CreateWorkoutType = 'Бойцовская' | 'Силовая' | 'Бег' | 'Другое'
 
 export interface Course {
   id: string
   title: string
-  shortTitle: string
-  direction: Direction
-  level: Level
-  lessonCount: number
-  weeks: number
-  price: number
-  image: string
-  description: string
-  isHit?: boolean
-  modules: CourseModule[]
-  whatYouGet: string[]
-  forWhom: string[]
+  subtitle: string
+  progress?: number
+  cta: string
+  badge?: string
 }
 
-export interface Achievement {
+export interface SettingsItem {
   id: string
-  title: string
-  description: string
-  category: 'courses' | 'progress'
-  total: number
-  icon: 'flag' | 'flame' | 'fighter' | 'trending' | 'crown' | 'medal'
+  label: string
+  badge?: string
 }
 
 export interface WheelSegment {
   id: string
   label: string
-  type: 'discount' | 'lesson' | 'xp' | 'bonus' | 'spin'
-  value: number
-}
-
-export interface PurchaseRecord {
-  id: string
-  courseId: string
-  courseName: string
-  price: number
-  date: string
-  status: 'paid'
-  image: string
-}
-
-export type WorkoutType = 'Муай-тай' | 'Кикбоксинг' | 'ОФП' | 'Спарринг' | 'Растяжка'
-
-export type Intensity = 'Легко' | 'Средне' | 'Тяжело'
-
-export interface WorkoutEntry {
-  id: string
-  date: string // yyyy-mm-dd, local calendar day
-  type: WorkoutType
-  durationMin: number
-  intensity: Intensity
-  note?: string
-  xp: number
-}
-
-export interface WeightEntry {
-  id: string
-  date: string // yyyy-mm-dd
-  value: number // kg
+  color: 'accent' | 'card'
 }

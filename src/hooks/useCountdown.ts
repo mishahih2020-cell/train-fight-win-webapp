@@ -1,39 +1,28 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-export interface CountdownValue {
-  days: number
-  hours: number
-  minutes: number
-  seconds: number
-  isOver: boolean
+export function formatClock(totalSeconds: number) {
+  const h = Math.floor(totalSeconds / 3600)
+  const m = Math.floor((totalSeconds % 3600) / 60)
+  const s = Math.floor(totalSeconds % 60)
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`
 }
 
-function diffToCountdown(diffMs: number): CountdownValue {
-  if (diffMs <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, isOver: true }
-  const totalSeconds = Math.floor(diffMs / 1000)
-  return {
-    days: Math.floor(totalSeconds / 86400),
-    hours: Math.floor((totalSeconds % 86400) / 3600),
-    minutes: Math.floor((totalSeconds % 3600) / 60),
-    seconds: totalSeconds % 60,
-    isOver: false,
-  }
-}
-
-export function useCountdown(targetIso: string): CountdownValue {
-  const target = new Date(targetIso).getTime()
-  const [value, setValue] = useState<CountdownValue>(() => diffToCountdown(target - Date.now()))
+/** Counts up from 0, pausable. Used for the workout session elapsed timer. */
+export function useStopwatch(running: boolean) {
+  const [seconds, setSeconds] = useState(0)
+  const savedRunning = useRef(running)
 
   useEffect(() => {
-    const tick = () => setValue(diffToCountdown(target - Date.now()))
-    tick()
-    const id = window.setInterval(tick, 1000)
+    savedRunning.current = running
+  }, [running])
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (savedRunning.current) setSeconds((s) => s + 1)
+    }, 1000)
     return () => window.clearInterval(id)
-  }, [target])
+  }, [])
 
-  return value
-}
-
-export function pad2(n: number): string {
-  return n.toString().padStart(2, '0')
+  return seconds
 }

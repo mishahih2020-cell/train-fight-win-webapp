@@ -1,43 +1,32 @@
-import { type ButtonHTMLAttributes, type ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
-type Size = 'lg' | 'md' | 'sm'
+type Variant = 'primary' | 'secondary' | 'ghost' | 'outline'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant
-  size?: Size
-  fullWidth?: boolean
   icon?: ReactNode
+  fullWidth?: boolean
 }
 
-const variantClasses: Record<Variant, string> = {
-  primary: 'bg-lime text-bg hover:bg-lime-dim',
-  secondary: 'bg-transparent text-white border border-border-strong',
-  ghost: 'bg-graphite text-white border border-border',
-  danger: 'bg-transparent text-red border border-red/30',
-}
-
-const sizeClasses: Record<Size, string> = {
-  lg: 'h-14 px-6 text-[15px]',
-  md: 'h-12 px-5 text-[14px]',
-  sm: 'h-10 px-4 text-[13px]',
+const VARIANT_CLASSES: Record<Variant, string> = {
+  primary: 'gradient-accent text-white',
+  secondary: 'bg-[var(--color-card)] text-[var(--color-text)] border border-[var(--color-divider)]',
+  outline: 'bg-transparent text-[var(--color-accent)] border border-[var(--color-accent)]',
+  ghost: 'bg-transparent text-[var(--color-text-secondary)]',
 }
 
 export function Button({
   variant = 'primary',
-  size = 'lg',
-  fullWidth = true,
   icon,
+  fullWidth = true,
   className = '',
   children,
-  disabled,
-  ...props
+  ...rest
 }: ButtonProps) {
   return (
     <button
-      className={`press inline-flex items-center justify-center gap-2 rounded-pill font-extrabold tracking-tight disabled:opacity-40 disabled:pointer-events-none ${variantClasses[variant]} ${sizeClasses[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
-      disabled={disabled}
-      {...props}
+      className={`press text-button flex h-12 items-center justify-center gap-2 rounded-[var(--radius-button)] ${VARIANT_CLASSES[variant]} ${fullWidth ? 'w-full' : 'px-6'} disabled:opacity-50 ${className}`}
+      {...rest}
     >
       {icon}
       {children}

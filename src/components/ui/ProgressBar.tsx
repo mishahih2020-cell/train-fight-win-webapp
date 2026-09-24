@@ -1,23 +1,24 @@
-export function ProgressBar({
-  value,
-  max,
-  className = '',
-  trackClassName = '',
-  glow = false,
-}: {
-  value: number
-  max: number
-  className?: string
-  trackClassName?: string
-  glow?: boolean
-}) {
-  const pct = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0
+export function ProgressBar({ value, className = '' }: { value: number; className?: string }) {
   return (
-    <div className={`h-1.5 w-full overflow-hidden rounded-pill bg-white/8 ${trackClassName}`}>
+    <div className={`h-1.5 w-full overflow-hidden rounded-[var(--radius-pill)] bg-[var(--color-divider)] ${className}`}>
       <div
-        className={`h-full rounded-pill bg-lime transition-[width] duration-500 ease-out ${glow ? 'shadow-[0_0_12px_var(--color-lime)]' : ''} ${className}`}
-        style={{ width: `${pct}%` }}
+        className="gradient-accent h-full rounded-[var(--radius-pill)] transition-[width] duration-300"
+        style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
       />
+    </div>
+  )
+}
+
+/** Segmented step indicator used on Onboarding/Profile-setup/Create-workout headers. */
+export function StepProgress({ step, total }: { step: number; total: number }) {
+  return (
+    <div className="flex gap-1.5">
+      {Array.from({ length: total }).map((_, i) => (
+        <div
+          key={i}
+          className={`h-1.5 flex-1 rounded-[var(--radius-pill)] ${i < step ? 'gradient-accent' : 'bg-[var(--color-divider)]'}`}
+        />
+      ))}
     </div>
   )
 }
