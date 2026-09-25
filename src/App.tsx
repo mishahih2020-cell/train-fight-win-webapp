@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { HashRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppStateProvider } from '@/context/AppStateContext'
 import { TabLayout } from '@/components/navigation/TabLayout'
 import { OnboardingPage } from '@/pages/Onboarding/OnboardingPage'
@@ -77,16 +77,27 @@ function AppRoutes() {
       <Route path="/workouts/session" element={<WorkoutSessionPage />} />
       <Route path="/progress" element={<ProgressPage />} />
       <Route path="/wheel" element={<WheelPage />} />
+
+      {/* Any unmatched path (e.g. Telegram resuming the WebView on a stale
+          deep path, or a GitHub Pages 404 fallback hit) bounces back to the
+          start instead of rendering a blank screen. */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
 
+// Telegram appends its own payload to the URL *hash* on every launch
+// (`#tgWebAppData=...&tgWebAppPlatform=...`) — a HashRouter would try to
+// parse that as the app's route, match nothing, and render a blank screen.
+// BrowserRouter ignores the hash entirely and routes off the real pathname.
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 function App() {
   return (
     <AppStateProvider>
-      <HashRouter>
+      <BrowserRouter basename={basename}>
         <AppRoutes />
-      </HashRouter>
+      </BrowserRouter>
     </AppStateProvider>
   )
 }
