@@ -13,9 +13,10 @@ export interface ProfileAnswers {
 }
 
 export interface CalendarDay {
-  date: string // yyyy-mm-dd
   weekday: string // Пн, Вт, ...
   dayNumber: number
+  workoutTitle?: string
+  isRest?: boolean
 }
 
 export interface TodayWorkout {
@@ -105,4 +106,19 @@ export interface WheelSegment {
   id: string
   label: string
   color: 'accent' | 'card'
+}
+
+export interface SessionExercise {
+  id: string
+  title: string
+  round: string
+  time: string
+  rest: string
+}
+
+export interface PurchaseRecord {
+  id: string
+  title: string
+  date: string
+  price: string
 }

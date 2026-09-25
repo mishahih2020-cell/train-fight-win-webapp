@@ -9,12 +9,19 @@ import {
   Ticket,
   User,
 } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
+import { Button } from '@/components/ui/Button'
 import { IconButton } from '@/components/ui/IconButton'
-import { PROFILE_STATS, SETTINGS_ITEMS, USER } from '@/data/mock'
+import { Modal } from '@/components/ui/Modal'
+import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
+import { Switch } from '@/components/ui/Switch'
+import { PROFILE_STATS, PURCHASE_HISTORY, SETTINGS_ITEMS, USER } from '@/data/mock'
 
-const ROUTES: Record<string, string> = { s6: '/wheel' }
+type ModalKind = 'orders' | 'promo' | 'subscription' | 'settings' | null
+
+const ROUTES: Record<string, string> = { s1: '/profile-setup', s2: '/progress', s3: '/courses', s6: '/wheel' }
+const MODALS: Record<string, Exclude<ModalKind, null>> = { s4: 'orders', s5: 'promo', s7: 'subscription', s8: 'settings' }
 
 const ICONS: Record<string, typeof User> = {
   s1: User,
@@ -29,11 +36,24 @@ const ICONS: Record<string, typeof User> = {
 
 export function ProfilePage() {
   const navigate = useNavigate()
+  const [modal, setModal] = useState<ModalKind>(null)
+  const [promoCode, setPromoCode] = useState('')
+  const [promoApplied, setPromoApplied] = useState(false)
+  const [pushEnabled, setPushEnabled] = useState(true)
+  const [soundEnabled, setSoundEnabled] = useState(true)
+
+  const openItem = (id: string) => {
+    const to = ROUTES[id]
+    if (to) return navigate(to)
+    const kind = MODALS[id]
+    if (kind) setModal(kind)
+  }
+
   return (
     <div className="safe-top px-4 pt-4">
       <div className="flex items-center justify-between">
         <h1 className="text-h1 text-[var(--color-text)]">Профиль</h1>
-        <IconButton variant="card" aria-label="Настройки">
+        <IconButton variant="card" aria-label="Настройки" onClick={() => setModal('settings')}>
           <SettingsIcon className="h-5 w-5" />
         </IconButton>
       </div>
@@ -66,10 +86,7 @@ export function ProfilePage() {
           return (
             <button
               key={item.id}
-              onClick={() => {
-                const to = ROUTES[item.id]
-                if (to) navigate(to)
-              }}
+              onClick={() => openItem(item.id)}
               className={`press flex h-14 items-center gap-3 px-4 text-left ${
                 i !== SETTINGS_ITEMS.length - 1 ? 'border-b border-[var(--color-divider)]' : ''
               }`}
@@ -92,6 +109,86 @@ export function ProfilePage() {
       </div>
 
       <div className="h-4" />
+
+      <Modal open={modal === 'orders'} onClose={() => setModal(null)}>
+        <div className="text-h2 mb-4 text-[var(--color-text)]">История заказов</div>
+        <div className="flex flex-col gap-2.5">
+          {PURCHASE_HISTORY.map((p) => (
+            <div
+              key={p.id}
+              className="flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--color-divider)] bg-[var(--color-card-2)] px-4 py-3"
+            >
+              <div>
+                <div className="text-body-secondary font-semibold text-[var(--color-text)]">{p.title}</div>
+                <div className="text-caption mt-0.5 text-[var(--color-text-secondary)]">{p.date}</div>
+              </div>
+              <span className="text-body-secondary font-semibold text-[var(--color-text)]">{p.price}</span>
+            </div>
+          ))}
+        </div>
+      </Modal>
+
+      <Modal
+        open={modal === 'promo'}
+        onClose={() => {
+          setModal(null)
+          setPromoApplied(false)
+          setPromoCode('')
+        }}
+      >
+        <div className="text-h2 mb-1 text-[var(--color-text)]">Промокод</div>
+        <p className="text-body-secondary mb-4 text-[var(--color-text-secondary)]">Введите код и получите бонус</p>
+        <div className="flex h-12 items-center rounded-[var(--radius-button)] border border-[var(--color-divider)] bg-[var(--color-card-2)] px-4">
+          <input
+            value={promoCode}
+            onChange={(e) => {
+              setPromoCode(e.target.value.toUpperCase())
+              setPromoApplied(false)
+            }}
+            placeholder="MARAT2026"
+            className="text-body h-full w-full bg-transparent text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-tertiary)]"
+          />
+        </div>
+        {promoApplied && (
+          <p className="text-caption mt-2 font-medium text-[var(--color-success)]">Промокод применён — бонус зачислен!</p>
+        )}
+        <Button variant="primary" className="mt-5" disabled={!promoCode.trim()} onClick={() => setPromoApplied(true)}>
+          Применить
+        </Button>
+      </Modal>
+
+      <Modal open={modal === 'subscription'} onClose={() => setModal(null)}>
+        <div className="flex items-center gap-2">
+          <div className="text-h2 text-[var(--color-text)]">Подписка</div>
+          <span className="text-caption rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-2 py-0.5 font-bold text-white">PRO</span>
+        </div>
+        <ul className="text-body-secondary mt-4 flex flex-col gap-2 text-[var(--color-text-secondary)]">
+          <li>• Безлимитный доступ ко всем курсам</li>
+          <li>• Персональные планы от AI Coach</li>
+          <li>• Приоритетная поддержка</li>
+          <li>• Бонусные попытки колеса фортуны</li>
+        </ul>
+        <Button variant="primary" className="mt-5" onClick={() => setModal(null)}>
+          Продлить подписку
+        </Button>
+      </Modal>
+
+      <Modal open={modal === 'settings'} onClose={() => setModal(null)}>
+        <div className="text-h2 mb-4 text-[var(--color-text)]">Настройки</div>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <span className="text-body text-[var(--color-text)]">Push-уведомления</span>
+            <Switch checked={pushEnabled} onChange={setPushEnabled} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-body text-[var(--color-text)]">Звук в тренировке</span>
+            <Switch checked={soundEnabled} onChange={setSoundEnabled} />
+          </div>
+        </div>
+        <Button variant="primary" className="mt-6" onClick={() => setModal(null)}>
+          Готово
+        </Button>
+      </Modal>
     </div>
   )
 }

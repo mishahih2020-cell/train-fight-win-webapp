@@ -1,11 +1,14 @@
 import type {
+  CalendarDay,
   ChatMessageData,
   Course,
   Exercise,
   MacroStat,
   Meal,
   ProgressStat,
+  PurchaseRecord,
   QuickAction,
+  SessionExercise,
   SettingsItem,
   WeightPoint,
   WheelSegment,
@@ -18,20 +21,17 @@ export const USER = {
   isPro: true,
 }
 
-export const WEEK_DAYS = [
-  { weekday: 'Пн', dayNumber: 22 },
-  { weekday: 'Вт', dayNumber: 23 },
-  { weekday: 'Ср', dayNumber: 24 },
-  { weekday: 'Чт', dayNumber: 25 },
-  { weekday: 'Пт', dayNumber: 26 },
-  { weekday: 'Сб', dayNumber: 27 },
-  { weekday: 'Вс', dayNumber: 28 },
+export const WEEK_DAYS: CalendarDay[] = [
+  { weekday: 'Пн', dayNumber: 22, workoutTitle: 'Running' },
+  { weekday: 'Вт', dayNumber: 23, workoutTitle: 'Muay Thai + Strength' },
+  { weekday: 'Ср', dayNumber: 24, isRest: true },
+  { weekday: 'Чт', dayNumber: 25, workoutTitle: 'Strength' },
+  { weekday: 'Пт', dayNumber: 26, workoutTitle: 'Muay Thai' },
+  { weekday: 'Сб', dayNumber: 27, workoutTitle: 'Sparring' },
+  { weekday: 'Вс', dayNumber: 28, isRest: true },
 ]
 
-export const TODAY_WORKOUT = {
-  title: 'Muay Thai + Strength',
-  label: 'Сегодняшняя тренировка',
-}
+export const TODAY_WORKOUT_LABEL = 'Сегодняшняя тренировка'
 
 export const WEIGHT_TODAY = { value: 70.0, deltaLabel: '+0.5 кг' }
 export const STREAK_DAYS = 12
@@ -148,14 +148,30 @@ export const DEFAULT_NEW_EXERCISES: Exercise[] = [
   { id: 'ne2', name: 'Техника', durationMin: 30 },
 ]
 
-export const SESSION_EXERCISE = {
-  title: 'Ударная техника',
-  index: 3,
-  total: 6,
-  round: '3/5',
-  time: '03:00',
-  rest: '01:00',
-}
+export const SESSION_EXERCISES: SessionExercise[] = [
+  { id: 'se1', title: 'Разминка', round: '1/3', time: '05:00', rest: '00:30' },
+  { id: 'se2', title: 'Удары руками', round: '2/4', time: '04:00', rest: '00:45' },
+  { id: 'se3', title: 'Ударная техника', round: '3/5', time: '03:00', rest: '01:00' },
+  { id: 'se4', title: 'Работа ног', round: '2/4', time: '03:30', rest: '00:45' },
+  { id: 'se5', title: 'Спарринг', round: '3/3', time: '05:00', rest: '01:30' },
+  { id: 'se6', title: 'Растяжка', round: '1/1', time: '08:00', rest: '00:00' },
+]
+
+export const WEEKLY_CALORIES: WeightPoint[] = [
+  { date: 'Пн', value: 2180 },
+  { date: 'Вт', value: 2350 },
+  { date: 'Ср', value: 1990 },
+  { date: 'Чт', value: 2420 },
+  { date: 'Пт', value: 2300 },
+  { date: 'Сб', value: 2510 },
+  { date: 'Вс', value: 2350 },
+]
+
+export const PURCHASE_HISTORY: PurchaseRecord[] = [
+  { id: 'p1', title: 'FULL COURSE ON ELBOWS', date: '12 сен 2026', price: '2 990 ₽' },
+  { id: 'p2', title: 'DAY IN MY TRAINING CAMP', date: '30 авг 2026', price: 'Бесплатно' },
+  { id: 'p3', title: 'Подписка PRO — 1 месяц', date: '1 сен 2026', price: '990 ₽' },
+]
 
 export const COURSES: Course[] = [
   {

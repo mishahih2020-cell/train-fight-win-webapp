@@ -5,12 +5,14 @@ import { IconButton } from '@/components/ui/IconButton'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Timer } from '@/components/ui/Timer'
 import { formatClock, useStopwatch } from '@/hooks/useCountdown'
-import { SESSION_EXERCISE } from '@/data/mock'
+import { SESSION_EXERCISES } from '@/data/mock'
 
 export function WorkoutSessionPage() {
   const navigate = useNavigate()
   const [running, setRunning] = useState(true)
+  const [index, setIndex] = useState(2)
   const elapsed = useStopwatch(running)
+  const exercise = SESSION_EXERCISES[index]
 
   return (
     <div className="safe-top safe-bottom fixed inset-0 flex flex-col overflow-y-auto px-4 pt-4">
@@ -25,9 +27,9 @@ export function WorkoutSessionPage() {
       </div>
 
       <div className="mt-6 text-center">
-        <h1 className="text-h2 text-[var(--color-text)]">{SESSION_EXERCISE.title}</h1>
+        <h1 className="text-h2 text-[var(--color-text)]">{exercise.title}</h1>
         <p className="text-body-secondary mt-1 text-[var(--color-text-secondary)]">
-          {SESSION_EXERCISE.index} из {SESSION_EXERCISE.total}
+          {index + 1} из {SESSION_EXERCISES.length}
         </p>
       </div>
 
@@ -36,26 +38,40 @@ export function WorkoutSessionPage() {
       <div className="mt-5 grid grid-cols-3 gap-3">
         <div className="rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)] p-3 text-center">
           <div className="text-caption text-[var(--color-text-secondary)]">Раунды</div>
-          <div className="text-h2 mt-1 text-[var(--color-text)]">{SESSION_EXERCISE.round}</div>
+          <div className="text-h2 mt-1 text-[var(--color-text)]">{exercise.round}</div>
         </div>
         <div className="rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)] p-3 text-center">
           <div className="text-caption text-[var(--color-text-secondary)]">Время</div>
-          <div className="text-h2 mt-1 text-[var(--color-text)]">{SESSION_EXERCISE.time}</div>
+          <div className="text-h2 mt-1 text-[var(--color-text)]">{exercise.time}</div>
         </div>
         <div className="rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)] p-3 text-center">
           <div className="text-caption text-[var(--color-text-secondary)]">Отдых</div>
-          <div className="text-h2 mt-1 text-[var(--color-text)]">{SESSION_EXERCISE.rest}</div>
+          <div className="text-h2 mt-1 text-[var(--color-text)]">{exercise.rest}</div>
         </div>
       </div>
 
       <div className="mt-6 mb-2 flex items-center justify-center gap-6">
-        <IconButton variant="card" size={48} aria-label="Предыдущее упражнение">
+        <IconButton
+          variant="card"
+          size={48}
+          disabled={index === 0}
+          onClick={() => setIndex((i) => Math.max(0, i - 1))}
+          aria-label="Предыдущее упражнение"
+          className="disabled:opacity-40"
+        >
           <SkipBack className="h-5 w-5" />
         </IconButton>
         <IconButton variant="accent" size={72} onClick={() => navigate('/workouts')} aria-label="Завершить">
           <Square className="h-7 w-7" fill="white" />
         </IconButton>
-        <IconButton variant="card" size={48} aria-label="Следующее упражнение">
+        <IconButton
+          variant="card"
+          size={48}
+          disabled={index === SESSION_EXERCISES.length - 1}
+          onClick={() => setIndex((i) => Math.min(SESSION_EXERCISES.length - 1, i + 1))}
+          aria-label="Следующее упражнение"
+          className="disabled:opacity-40"
+        >
           <SkipForward className="h-5 w-5" />
         </IconButton>
       </div>

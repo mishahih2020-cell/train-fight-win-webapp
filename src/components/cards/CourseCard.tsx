@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 
-export function CourseCard({ course }: { course: Course }) {
+export function CourseCard({ course, onCta }: { course: Course; onCta?: () => void }) {
   return (
     <div className="card-shadow relative overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-divider)]">
       <PlaceholderImage className="h-44 w-full" rounded="rounded-none" darken />
@@ -23,7 +23,7 @@ export function CourseCard({ course }: { course: Course }) {
             <span className="text-caption font-semibold text-[var(--color-accent)]">{course.progress}%</span>
           </div>
         )}
-        <Button variant="primary" fullWidth={false} className="self-start px-6">
+        <Button variant="primary" fullWidth={false} className="self-start px-6" onClick={onCta}>
           {course.cta}
         </Button>
       </div>
