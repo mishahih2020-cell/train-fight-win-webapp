@@ -16,6 +16,7 @@ const STORAGE_KEY = 'marat-fight-club:v1'
 interface PersistedState {
   profile: ProfileAnswers
   wheelSpinsLeft: number
+  onboarded: boolean
 }
 
 // Telegram's in-app browser can restrict storage access in rare/older
@@ -43,6 +44,8 @@ interface AppState {
   setProfile: (profile: ProfileAnswers) => void
   wheelSpinsLeft: number
   spendSpin: () => void
+  onboarded: boolean
+  completeOnboarding: () => void
 }
 
 const AppStateContext = createContext<AppState | null>(null)
@@ -53,21 +56,29 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     ...readPersisted().profile,
   }))
   const [wheelSpinsLeft, setWheelSpinsLeft] = useState(() => readPersisted().wheelSpinsLeft ?? 1)
+  const [onboarded, setOnboarded] = useState(() => readPersisted().onboarded ?? false)
 
   const setProfile = (next: ProfileAnswers) => {
     setProfileState(next)
-    writePersisted({ profile: next, wheelSpinsLeft })
+    writePersisted({ profile: next, wheelSpinsLeft, onboarded })
   }
 
   const spendSpin = () =>
     setWheelSpinsLeft((n) => {
       const next = Math.max(0, n - 1)
-      writePersisted({ profile, wheelSpinsLeft: next })
+      writePersisted({ profile, wheelSpinsLeft: next, onboarded })
       return next
     })
 
+  const completeOnboarding = () => {
+    setOnboarded(true)
+    writePersisted({ profile, wheelSpinsLeft, onboarded: true })
+  }
+
   return (
-    <AppStateContext.Provider value={{ profile, setProfile, wheelSpinsLeft, spendSpin }}>
+    <AppStateContext.Provider
+      value={{ profile, setProfile, wheelSpinsLeft, spendSpin, onboarded, completeOnboarding }}
+    >
       {children}
     </AppStateContext.Provider>
   )

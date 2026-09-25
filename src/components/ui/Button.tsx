@@ -3,8 +3,11 @@ import { haptic } from '@/lib/haptics'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'outline'
 
+type Size = 'default' | 'large'
+
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant
+  size?: Size
   icon?: ReactNode
   fullWidth?: boolean
 }
@@ -16,8 +19,14 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   ghost: 'bg-transparent text-[var(--color-text-secondary)]',
 }
 
+const SIZE_CLASSES: Record<Size, string> = {
+  default: 'h-12 text-button',
+  large: 'h-16 text-lg font-bold',
+}
+
 export function Button({
   variant = 'primary',
+  size = 'default',
   icon,
   fullWidth = true,
   className = '',
@@ -32,7 +41,7 @@ export function Button({
 
   return (
     <button
-      className={`press text-button flex h-12 items-center justify-center gap-2 rounded-[var(--radius-button)] ${VARIANT_CLASSES[variant]} ${fullWidth ? 'w-full' : 'px-6'} disabled:opacity-50 ${className}`}
+      className={`press flex items-center justify-center gap-2 rounded-[var(--radius-button)] ${SIZE_CLASSES[size]} ${VARIANT_CLASSES[variant]} ${fullWidth ? 'w-full' : 'px-6'} disabled:opacity-50 ${className}`}
       onClick={handleClick}
       {...rest}
     >

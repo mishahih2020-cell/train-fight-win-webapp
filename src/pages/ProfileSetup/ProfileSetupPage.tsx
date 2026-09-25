@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { StepProgress } from '@/components/ui/ProgressBar'
 import { useAppState } from '@/context/AppStateContext'
 import type { FitnessLevel, Gender } from '@/types'
 
@@ -13,17 +12,15 @@ const FREQUENCIES = ['1-2', '3-4', '5-6', '7+']
 
 export function ProfileSetupPage() {
   const navigate = useNavigate()
-  const { profile, setProfile } = useAppState()
+  const { profile, setProfile, completeOnboarding } = useAppState()
   const [form, setForm] = useState(profile)
 
   const setGender = (gender: Gender) => setForm((f) => ({ ...f, gender }))
 
   return (
-    <div className="safe-top safe-bottom fixed inset-0 flex flex-col overflow-y-auto px-5 pt-4 pb-6">
-      <StepProgress step={1} total={3} />
-
-      <div className="mt-6">
-        <h1 className="text-h2 text-[var(--color-text)]">Расскажите о себе</h1>
+    <div className="safe-top safe-bottom overscroll-none fixed inset-0 flex flex-col overflow-y-auto px-5 pt-4 pb-6">
+      <div className="mt-2">
+        <h1 className="text-h1 text-[var(--color-text)]">Расскажите о себе</h1>
         <p className="text-body-secondary mt-1 text-[var(--color-text-secondary)]">
           Это поможет создать персональные рекомендации
         </p>
@@ -99,9 +96,11 @@ export function ProfileSetupPage() {
 
       <Button
         variant="primary"
+        size="large"
         className="mt-6"
         onClick={() => {
           setProfile(form)
+          completeOnboarding()
           navigate('/home')
         }}
       >

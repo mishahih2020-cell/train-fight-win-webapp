@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { AppStateProvider } from '@/context/AppStateContext'
+import { AppStateProvider, useAppState } from '@/context/AppStateContext'
 import { TabLayout } from '@/components/navigation/TabLayout'
 import { OnboardingPage } from '@/pages/Onboarding/OnboardingPage'
 import { ProfileSetupPage } from '@/pages/ProfileSetup/ProfileSetupPage'
@@ -38,7 +38,19 @@ function useTelegramInit() {
     safe(() => webApp.setBottomBarColor?.('#0B0B0D'))
     safe(() => webApp.disableVerticalSwipes?.())
     safe(() => webApp.expand())
+    // requestFullscreen() (Bot API 8.0+) hides Telegram's own header chrome so
+    // the app truly fills the screen; no-ops safely via `safe()` on clients
+    // that don't support it yet.
+    safe(() => webApp.requestFullscreen?.())
   }, [])
+}
+
+// "/" is the onboarding splash, but only until the user has actually filled
+// in their profile once — after that, opening the Mini App should land
+// straight on Home instead of re-running the first-run flow every time.
+function RootRoute() {
+  const { onboarded } = useAppState()
+  return onboarded ? <Navigate to="/home" replace /> : <OnboardingPage />
 }
 
 // Mirrors in-app navigation onto Telegram's native hardware/UI back button,
@@ -81,7 +93,7 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<OnboardingPage />} />
+      <Route path="/" element={<RootRoute />} />
       <Route path="/profile-setup" element={<ProfileSetupPage />} />
 
       <Route element={<TabLayout />}>

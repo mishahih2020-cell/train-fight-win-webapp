@@ -31,7 +31,7 @@ export function WheelPage() {
   }
 
   return (
-    <div className="safe-top safe-bottom fixed inset-0 flex flex-col overflow-y-auto">
+    <div className="safe-top safe-bottom overscroll-none fixed inset-0 flex flex-col overflow-y-auto">
       <Header title="Колесо Фортуны" />
 
       <div className="mt-6 flex flex-1 flex-col items-center px-4">
