@@ -5,31 +5,38 @@ interface PlaceholderImageProps {
   rounded?: string
   darken?: boolean
   compact?: boolean
+  /** Real photo URL (e.g. `/photos/hero.jpg`). Omit to keep the placeholder. */
+  src?: string
 }
 
 /**
  * Fills the exact area a real photo of Marat will occupy later. Keeps
  * proportions/position/rounding/darkening intact so swapping in real
- * assets is a drop-in replacement, not a relayout.
+ * assets is a drop-in replacement, not a relayout — just pass `src`.
  */
 export function PlaceholderImage({
   className = '',
   rounded = 'rounded-[var(--radius-card)]',
   darken = false,
   compact = false,
+  src,
 }: PlaceholderImageProps) {
   return (
     <div
       className={`relative flex items-center justify-center overflow-hidden bg-[linear-gradient(155deg,#232327_0%,#151517_100%)] ${rounded} ${className}`}
     >
-      <div className="flex flex-col items-center gap-1.5 px-2 text-center">
-        <User className={compact ? 'h-4 w-4 text-[var(--color-text-tertiary)]' : 'h-6 w-6 text-[var(--color-text-tertiary)]'} strokeWidth={1.5} />
-        {!compact && (
-          <span className="text-caption font-medium tracking-tight text-[var(--color-text-tertiary)]">
-            ЗДЕСЬ БУДЕТ ФОТО МАРАТА
-          </span>
-        )}
-      </div>
+      {src ? (
+        <img src={src} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <div className="flex flex-col items-center gap-1.5 px-2 text-center">
+          <User className={compact ? 'h-4 w-4 text-[var(--color-text-tertiary)]' : 'h-6 w-6 text-[var(--color-text-tertiary)]'} strokeWidth={1.5} />
+          {!compact && (
+            <span className="text-caption font-medium tracking-tight text-[var(--color-text-tertiary)]">
+              ЗДЕСЬ БУДЕТ ФОТО МАРАТА
+            </span>
+          )}
+        </div>
+      )}
       {darken && <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />}
     </div>
   )
