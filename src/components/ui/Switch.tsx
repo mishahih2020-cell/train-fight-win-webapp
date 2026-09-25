@@ -1,9 +1,14 @@
+import { hapticSelect } from '@/lib/haptics'
+
 export function Switch({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <button
       role="switch"
       aria-checked={checked}
-      onClick={() => onChange(!checked)}
+      onClick={() => {
+        hapticSelect()
+        onChange(!checked)
+      }}
       className={`press relative h-7 w-12 shrink-0 rounded-full transition-colors ${
         checked ? 'gradient-accent' : 'bg-[var(--color-card-2)] border border-[var(--color-divider)]'
       }`}

@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from 'react'
+import { haptic } from '@/lib/haptics'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'outline'
 
@@ -21,11 +22,18 @@ export function Button({
   fullWidth = true,
   className = '',
   children,
+  onClick,
   ...rest
 }: ButtonProps) {
+  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
+    haptic('light')
+    onClick?.(e)
+  }
+
   return (
     <button
       className={`press text-button flex h-12 items-center justify-center gap-2 rounded-[var(--radius-button)] ${VARIANT_CLASSES[variant]} ${fullWidth ? 'w-full' : 'px-6'} disabled:opacity-50 ${className}`}
+      onClick={handleClick}
       {...rest}
     >
       {icon}

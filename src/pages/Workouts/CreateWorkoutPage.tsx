@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { StepProgress } from '@/components/ui/ProgressBar'
 import { Header } from '@/components/navigation/Header'
 import { CREATE_WORKOUT_TYPES, DEFAULT_NEW_EXERCISES } from '@/data/mock'
-import type { Exercise } from '@/types'
+import type { Exercise, SessionExercise } from '@/types'
 
 const TYPE_ICONS = { fight: Flame, strength: Dumbbell, run: Activity, other: MoreHorizontal }
 
@@ -20,6 +20,17 @@ export function CreateWorkoutPage() {
   const addExercise = () =>
     setExercises((list) => [...list, { id: `ne${list.length + 1}`, name: 'Новое упражнение', durationMin: 15 }])
   const removeExercise = (id: string) => setExercises((list) => list.filter((e) => e.id !== id))
+
+  const startWorkout = () => {
+    const sessionExercises: SessionExercise[] = exercises.map((ex, i) => ({
+      id: ex.id,
+      title: ex.name,
+      round: `${i + 1}/${exercises.length}`,
+      time: `${String(ex.durationMin).padStart(2, '0')}:00`,
+      rest: '00:30',
+    }))
+    navigate('/workouts/session', { state: { workoutName: name, exercises: sessionExercises } })
+  }
 
   return (
     <div className="pb-8">
@@ -105,7 +116,7 @@ export function CreateWorkoutPage() {
           </div>
         </div>
 
-        <Button variant="primary" className="mt-2" onClick={() => navigate('/workouts/session')}>
+        <Button variant="primary" className="mt-2" disabled={exercises.length === 0} onClick={startWorkout}>
           Начать тренировку
         </Button>
       </div>

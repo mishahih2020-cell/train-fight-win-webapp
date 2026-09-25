@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { AppStateProvider } from '@/context/AppStateContext'
 import { TabLayout } from '@/components/navigation/TabLayout'
 import { OnboardingPage } from '@/pages/Onboarding/OnboardingPage'
@@ -14,21 +14,6 @@ import { AICoachPage } from '@/pages/AICoach/AICoachPage'
 import { CoursesPage } from '@/pages/Courses/CoursesPage'
 import { ProfilePage } from '@/pages/Profile/ProfilePage'
 import { WheelPage } from '@/pages/Wheel/WheelPage'
-
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        ready: () => void
-        expand: () => void
-        disableVerticalSwipes?: () => void
-        setHeaderColor?: (color: string) => void
-        setBackgroundColor?: (color: string) => void
-        setBottomBarColor?: (color: string) => void
-      }
-    }
-  }
-}
 
 function useTelegramInit() {
   useEffect(() => {
@@ -56,8 +41,43 @@ function useTelegramInit() {
   }, [])
 }
 
+// Mirrors in-app navigation onto Telegram's native hardware/UI back button,
+// so it always does the same thing as the on-screen back chevron instead of
+// closing the Mini App straight from a drill-in screen.
+function useTelegramBackButton() {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const backButton = window.Telegram?.WebApp?.BackButton
+    if (!backButton) return
+
+    const onClick = () => navigate(-1)
+
+    try {
+      if (location.pathname === '/') {
+        backButton.hide()
+      } else {
+        backButton.show()
+      }
+      backButton.onClick(onClick)
+    } catch {
+      // unsupported on this client — ignore
+    }
+
+    return () => {
+      try {
+        backButton.offClick(onClick)
+      } catch {
+        // unsupported on this client — ignore
+      }
+    }
+  }, [location.pathname, navigate])
+}
+
 function AppRoutes() {
   useTelegramInit()
+  useTelegramBackButton()
 
   return (
     <Routes>

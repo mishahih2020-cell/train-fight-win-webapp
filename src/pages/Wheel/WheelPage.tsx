@@ -5,6 +5,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Wheel } from '@/components/ui/Wheel'
 import { useAppState } from '@/context/AppStateContext'
 import { WHEEL_SEGMENTS } from '@/data/mock'
+import { haptic } from '@/lib/haptics'
 
 export function WheelPage() {
   const { wheelSpinsLeft, spendSpin } = useAppState()
@@ -15,6 +16,7 @@ export function WheelPage() {
 
   const spin = () => {
     if (spinning || wheelSpinsLeft <= 0) return
+    haptic('medium')
     spendSpin()
     setSpinning(true)
     const segIndex = Math.floor(Math.random() * WHEEL_SEGMENTS.length)
@@ -23,6 +25,7 @@ export function WheelPage() {
     setRotation((r) => r + 1800 + targetOffset)
     window.setTimeout(() => {
       setSpinning(false)
+      haptic('heavy')
       setResult(WHEEL_SEGMENTS[segIndex].label.replace('\n', ' '))
     }, 4200)
   }

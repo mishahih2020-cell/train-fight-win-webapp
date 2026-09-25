@@ -1,18 +1,29 @@
 import { ChevronLeft, Pause, Play, SkipBack, SkipForward, Square } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { IconButton } from '@/components/ui/IconButton'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Timer } from '@/components/ui/Timer'
 import { formatClock, useStopwatch } from '@/hooks/useCountdown'
 import { SESSION_EXERCISES } from '@/data/mock'
+import type { SessionExercise } from '@/types'
+
+interface SessionNavState {
+  workoutName?: string
+  exercises?: SessionExercise[]
+}
 
 export function WorkoutSessionPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const navState = location.state as SessionNavState | null
+  const customExercises = navState?.exercises?.length ? navState.exercises : null
+  const exercises = customExercises ?? SESSION_EXERCISES
+
   const [running, setRunning] = useState(true)
-  const [index, setIndex] = useState(2)
+  const [index, setIndex] = useState(() => (customExercises ? 0 : Math.min(2, exercises.length - 1)))
   const elapsed = useStopwatch(running)
-  const exercise = SESSION_EXERCISES[index]
+  const exercise = exercises[index]
 
   return (
     <div className="safe-top safe-bottom fixed inset-0 flex flex-col overflow-y-auto px-4 pt-4">
@@ -27,9 +38,12 @@ export function WorkoutSessionPage() {
       </div>
 
       <div className="mt-6 text-center">
+        {navState?.workoutName && (
+          <p className="text-caption font-semibold tracking-wide text-[var(--color-accent)] uppercase">{navState.workoutName}</p>
+        )}
         <h1 className="text-h2 text-[var(--color-text)]">{exercise.title}</h1>
         <p className="text-body-secondary mt-1 text-[var(--color-text-secondary)]">
-          {index + 1} из {SESSION_EXERCISES.length}
+          {index + 1} из {exercises.length}
         </p>
       </div>
 
@@ -67,8 +81,8 @@ export function WorkoutSessionPage() {
         <IconButton
           variant="card"
           size={48}
-          disabled={index === SESSION_EXERCISES.length - 1}
-          onClick={() => setIndex((i) => Math.min(SESSION_EXERCISES.length - 1, i + 1))}
+          disabled={index === exercises.length - 1}
+          onClick={() => setIndex((i) => Math.min(exercises.length - 1, i + 1))}
           aria-label="Следующее упражнение"
           className="disabled:opacity-40"
         >
