@@ -20,13 +20,13 @@ export function BottomNav() {
             to={to}
             end={end}
             className={({ isActive }) =>
-              `press flex flex-1 flex-col items-center justify-center gap-1 ${
+              `press flex min-w-0 flex-1 flex-col items-center justify-center gap-1 ${
                 isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-tertiary)]'
               }`
             }
           >
-            <Icon className="h-5 w-5" strokeWidth={2} />
-            <span className="text-[10px] leading-none font-medium">{label}</span>
+            <Icon className="h-5 w-5 shrink-0" strokeWidth={2} />
+            <span className="w-full truncate px-0.5 text-center text-[10px] leading-none font-medium">{label}</span>
           </NavLink>
         ))}
       </div>

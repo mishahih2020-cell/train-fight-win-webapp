@@ -6,13 +6,15 @@ import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Timer } from '@/components/ui/Timer'
 import { formatClock, useStopwatch } from '@/hooks/useCountdown'
 import { SESSION_EXERCISES } from '@/data/mock'
-import { workoutLogRepo } from '@/db/repos'
+import { coursesRepo, workoutLogRepo } from '@/db/repos'
 import { haptic } from '@/lib/haptics'
 import type { SessionExercise } from '@/types'
 
 interface SessionNavState {
   workoutName?: string
+  category?: string
   exercises?: SessionExercise[]
+  courseId?: string
 }
 
 export function WorkoutSessionPage() {
@@ -32,11 +34,20 @@ export function WorkoutSessionPage() {
     await workoutLogRepo.add({
       id: `wl${Date.now()}`,
       title: navState?.workoutName ?? exercises[0]?.title ?? 'Тренировка',
-      category: 'Бойцовские',
+      category: navState?.category ?? 'Силовые',
       date: new Date().toISOString().slice(0, 10),
       durationSec: elapsed,
       exerciseCount: exercises.length,
     })
+
+    if (navState?.courseId) {
+      const course = await coursesRepo.get(navState.courseId)
+      if (course) {
+        const nextProgress = Math.min(100, (course.progress ?? 0) + 20)
+        await coursesRepo.update(course.id, { progress: nextProgress })
+      }
+    }
+
     navigate('/workouts')
   }
 

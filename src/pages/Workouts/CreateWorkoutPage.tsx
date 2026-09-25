@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/Input'
 import { StepProgress } from '@/components/ui/ProgressBar'
 import { Header } from '@/components/navigation/Header'
 import { CREATE_WORKOUT_TYPES, DEFAULT_NEW_EXERCISES } from '@/data/mock'
-import type { Exercise, SessionExercise } from '@/types'
+import { buildSessionExercises } from '@/lib/session'
+import type { Exercise } from '@/types'
 
 const TYPE_ICONS = { fight: Flame, strength: Dumbbell, run: Activity, other: MoreHorizontal }
+const TYPE_CATEGORY: Record<string, string> = { fight: 'Бойцовские', strength: 'Силовые', run: 'Бег', other: 'Другое' }
 
 export function CreateWorkoutPage() {
   const navigate = useNavigate()
@@ -22,14 +24,9 @@ export function CreateWorkoutPage() {
   const removeExercise = (id: string) => setExercises((list) => list.filter((e) => e.id !== id))
 
   const startWorkout = () => {
-    const sessionExercises: SessionExercise[] = exercises.map((ex, i) => ({
-      id: ex.id,
-      title: ex.name,
-      round: `${i + 1}/${exercises.length}`,
-      time: `${String(ex.durationMin).padStart(2, '0')}:00`,
-      rest: '00:30',
-    }))
-    navigate('/workouts/session', { state: { workoutName: name, exercises: sessionExercises } })
+    navigate('/workouts/session', {
+      state: { workoutName: name, category: TYPE_CATEGORY[type], exercises: buildSessionExercises(exercises) },
+    })
   }
 
   return (

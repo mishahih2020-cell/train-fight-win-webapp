@@ -24,7 +24,7 @@ export function CoursesPage() {
 
   const handleCta = (course: Course) => {
     if (course.purchased) {
-      navigate('/workouts/session')
+      navigate('/workouts/session', { state: { workoutName: course.title, courseId: course.id } })
       return
     }
     setPendingCourse(course)

@@ -13,7 +13,7 @@ export function WheelPage() {
   const { items: segments } = useRepoList(wheelSegmentsRepo)
   const [rotation, setRotation] = useState(0)
   const [spinning, setSpinning] = useState(false)
-  const [result, setResult] = useState<string | null>(null)
+  const [result, setResult] = useState<{ label: string; bonusAwarded: boolean } | null>(null)
   const [infoOpen, setInfoOpen] = useState(false)
 
   const spin = () => {
@@ -30,10 +30,11 @@ export function WheelPage() {
       haptic('heavy')
       const prize = segments[segIndex]
       const label = prize.label.replace('\n', ' ')
-      if (!label.toLowerCase().includes('ещё раз')) {
+      const bonusAwarded = !label.toLowerCase().includes('ещё раз')
+      if (bonusAwarded) {
         await awardBonus(20, `Колесо фортуны: ${label}`)
       }
-      setResult(label)
+      setResult({ label, bonusAwarded })
     }, 4200)
   }
 
@@ -69,8 +70,11 @@ export function WheelPage() {
 
       <Modal open={!!result} onClose={() => setResult(null)}>
         <div className="text-center">
-          <div className="text-h2 text-[var(--color-text)]">🎉 Поздравляем!</div>
-          <p className="text-body-secondary mt-2 text-[var(--color-text-secondary)]">Ваш приз: {result}</p>
+          <div className="text-h2 text-[var(--color-text)]">{result?.bonusAwarded ? '🎉 Поздравляем!' : 'Почти!'}</div>
+          <p className="text-body-secondary mt-2 text-[var(--color-text-secondary)]">Выпало: {result?.label}</p>
+          {result?.bonusAwarded && (
+            <p className="text-caption mt-1 font-medium text-[var(--color-success)]">+20 бонусов начислено</p>
+          )}
           <Button variant="primary" className="mt-5" onClick={() => setResult(null)}>
             Отлично
           </Button>
@@ -80,9 +84,9 @@ export function WheelPage() {
       <Modal open={infoOpen} onClose={() => setInfoOpen(false)}>
         <div className="text-h2 text-[var(--color-text)]">Как это работает?</div>
         <p className="text-body-secondary mt-3 text-[var(--color-text-secondary)]">
-          Каждая покупка курса даёт одну бесплатную попытку крутить колесо. Приз начисляется сразу после
-          остановки — скидку можно применить при следующей покупке, а бонусные баллы и бесплатный курс появятся
-          в разделе «Бонусы» в профиле.
+          Каждая покупка курса даёт одну бесплатную попытку крутить колесо. За любой приз, кроме «Попробуй ещё
+          раз», сразу начисляются бонусные баллы — посмотреть баланс и историю начислений можно в разделе
+          «Бонусы» в профиле. Автоматическое применение скидок и купонов заработает после переноса на сервер.
         </p>
         <Button variant="primary" className="mt-5" onClick={() => setInfoOpen(false)}>
           Понятно

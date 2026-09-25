@@ -37,7 +37,7 @@ export function ProgressPage() {
         .map((log) => ({
           id: log.id,
           title: log.title,
-          category: 'Силовые',
+          category: log.category as Workout['category'],
           durationMin: Math.round(log.durationSec / 60),
           exerciseCount: log.exerciseCount,
           dateLabel: formatRelativeDate(log.date),
@@ -117,7 +117,13 @@ export function ProgressPage() {
         {tab === 'Тренировки' && (
           <div className="flex flex-col gap-3">
             {loggedWorkouts.length > 0 ? (
-              loggedWorkouts.map((w) => <WorkoutCard key={w.id} workout={w} onClick={() => navigate('/workouts/session')} />)
+              loggedWorkouts.map((w) => (
+                <WorkoutCard
+                  key={w.id}
+                  workout={w}
+                  onClick={() => navigate('/workouts/session', { state: { workoutName: w.title, category: w.category } })}
+                />
+              ))
             ) : (
               <div className="text-body-secondary rounded-[var(--radius-card)] border border-dashed border-[var(--color-divider)] p-6 text-center text-[var(--color-text-secondary)]">
                 Завершённые тренировки появятся здесь

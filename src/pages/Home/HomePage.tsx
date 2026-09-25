@@ -71,7 +71,10 @@ export function HomePage() {
               <div className="text-caption text-[var(--color-text-secondary)]">{TODAY_WORKOUT_LABEL}</div>
               <div className="text-h2 mt-1 text-[var(--color-text)]">{selectedDay.workoutTitle}</div>
             </div>
-            <Button variant="primary" onClick={() => navigate('/workouts/session')}>
+            <Button
+              variant="primary"
+              onClick={() => navigate('/workouts/session', { state: { workoutName: selectedDay.workoutTitle } })}
+            >
               Начать тренировку
             </Button>
           </>

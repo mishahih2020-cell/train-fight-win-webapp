@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { useAppState } from '@/context/AppStateContext'
+import { weightRepo } from '@/db/repos'
 import type { FitnessLevel, Gender } from '@/types'
 
 const GOALS = ['Подготовка к бою', 'Похудение', 'Набор массы', 'Общая форма']
@@ -16,6 +17,25 @@ export function ProfileSetupPage() {
   const [form, setForm] = useState(profile)
 
   const setGender = (gender: Gender) => setForm((f) => ({ ...f, gender }))
+
+  const submit = async () => {
+    setProfile(form)
+
+    // Keep the real weight log in sync with what was just typed here —
+    // upsert today's entry instead of appending, so revisiting this screen
+    // later doesn't leave duplicate same-day points on the weight chart.
+    const today = new Date().toISOString().slice(0, 10)
+    const entries = await weightRepo.list()
+    const todayEntry = entries.find((e) => e.date === today)
+    if (todayEntry) {
+      await weightRepo.update(todayEntry.id, { value: form.weightKg })
+    } else {
+      await weightRepo.add({ id: `w${Date.now()}`, date: today, value: form.weightKg })
+    }
+
+    completeOnboarding()
+    navigate('/home')
+  }
 
   return (
     <div className="safe-top safe-bottom overscroll-none fixed inset-0 flex flex-col overflow-y-auto px-5 pt-4 pb-6">
@@ -30,6 +50,8 @@ export function ProfileSetupPage() {
         <Input
           label="Возраст"
           type="number"
+          min={10}
+          max={100}
           value={form.age}
           onChange={(e) => setForm((f) => ({ ...f, age: Number(e.target.value) }))}
         />
@@ -64,6 +86,8 @@ export function ProfileSetupPage() {
           label="Рост"
           type="number"
           suffix="см"
+          min={100}
+          max={250}
           value={form.heightCm}
           onChange={(e) => setForm((f) => ({ ...f, heightCm: Number(e.target.value) }))}
         />
@@ -71,6 +95,8 @@ export function ProfileSetupPage() {
           label="Текущий вес"
           type="number"
           suffix="кг"
+          min={20}
+          max={300}
           value={form.weightKg}
           onChange={(e) => setForm((f) => ({ ...f, weightKg: Number(e.target.value) }))}
         />
@@ -94,16 +120,7 @@ export function ProfileSetupPage() {
         />
       </div>
 
-      <Button
-        variant="primary"
-        size="large"
-        className="mt-6"
-        onClick={() => {
-          setProfile(form)
-          completeOnboarding()
-          navigate('/home')
-        }}
-      >
+      <Button variant="primary" size="large" className="mt-6" onClick={submit}>
         Продолжить
       </Button>
     </div>

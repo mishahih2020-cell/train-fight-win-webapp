@@ -11,11 +11,19 @@ export function PromoCodesPage() {
   const { items: codes, reload } = useRepoList(promoCodesRepo)
   const [code, setCode] = useState('')
   const [discount, setDiscount] = useState(10)
+  const [notice, setNotice] = useState('')
 
   const add = async () => {
     const id = code.trim().toUpperCase()
     if (!id) return
-    await promoCodesRepo.add({ id, discountPercent: discount, active: true })
+    const exists = codes.some((c) => c.id === id)
+    if (exists) {
+      await promoCodesRepo.update(id, { discountPercent: discount, active: true })
+      setNotice(`Код ${id} уже был — обновил скидку`)
+    } else {
+      await promoCodesRepo.add({ id, discountPercent: discount, active: true })
+      setNotice('')
+    }
     setCode('')
     setDiscount(10)
     reload()
@@ -44,6 +52,7 @@ export function PromoCodesPage() {
           Добавить
         </Button>
       </Card>
+      {notice && <p className="text-caption mt-2 text-[var(--color-text-tertiary)]">{notice}</p>}
 
       <div className="mt-4 flex flex-col gap-2.5">
         {codes.map((c) => (

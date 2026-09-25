@@ -41,7 +41,7 @@ export function ProfilePage() {
   const navigate = useNavigate()
   const [modal, setModal] = useState<ModalKind>(null)
   const [promoCode, setPromoCode] = useState('')
-  const [promoResult, setPromoResult] = useState<'ok' | 'error' | null>(null)
+  const [promoResult, setPromoResult] = useState<'ok' | 'error' | 'used' | null>(null)
   const [pushEnabled, setPushEnabled] = useState(true)
   const [soundEnabled, setSoundEnabled] = useState(true)
 
@@ -72,7 +72,12 @@ export function ProfilePage() {
       setPromoResult('error')
       return
     }
-    await awardBonus(match.discountPercent * 2, `Промокод ${match.id}`)
+    const reason = `Промокод ${match.id}`
+    if (bonusLedger.some((e) => e.reason === reason)) {
+      setPromoResult('used')
+      return
+    }
+    await awardBonus(match.discountPercent * 2, reason)
     reloadBonus()
     setPromoResult('ok')
   }
@@ -191,6 +196,9 @@ export function ProfilePage() {
         )}
         {promoResult === 'error' && (
           <p className="text-caption mt-2 font-medium text-[var(--color-accent)]">Промокод не найден или недействителен</p>
+        )}
+        {promoResult === 'used' && (
+          <p className="text-caption mt-2 font-medium text-[var(--color-warning)]">Этот промокод уже был применён раньше</p>
         )}
         <Button variant="primary" className="mt-5" disabled={!promoCode.trim()} onClick={applyPromo}>
           Применить

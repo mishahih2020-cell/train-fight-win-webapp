@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/Button'
 import { Chips, Tabs } from '@/components/ui/Tabs'
 import { WorkoutCard } from '@/components/cards/WorkoutCard'
 import { WORKOUTS, WORKOUT_CATEGORIES } from '@/data/mock'
+import { buildSessionExercises } from '@/lib/session'
+import type { Workout } from '@/types'
 
 export function WorkoutsPage() {
   const navigate = useNavigate()
@@ -14,6 +16,11 @@ export function WorkoutsPage() {
     () => (category === 'Все' ? WORKOUTS : WORKOUTS.filter((w) => w.category === category)),
     [category],
   )
+
+  const startWorkout = (w: Workout) =>
+    navigate('/workouts/session', {
+      state: { workoutName: w.title, category: w.category, exercises: buildSessionExercises(w.exercises) },
+    })
 
   return (
     <div className="safe-top px-4 pt-4">
@@ -29,7 +36,7 @@ export function WorkoutsPage() {
 
       <div className="mt-4 flex flex-col gap-3">
         {mode === 'Мои тренировки' ? (
-          filtered.map((w) => <WorkoutCard key={w.id} workout={w} onClick={() => navigate('/workouts/session')} />)
+          filtered.map((w) => <WorkoutCard key={w.id} workout={w} onClick={() => startWorkout(w)} />)
         ) : (
           <div className="text-body-secondary rounded-[var(--radius-card)] border border-dashed border-[var(--color-divider)] p-6 text-center text-[var(--color-text-secondary)]">
             Программы тренировок скоро появятся

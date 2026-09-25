@@ -23,7 +23,7 @@ export function BonusesPage() {
 
   const addSegment = async () => {
     const label = newSegment.trim()
-    if (!label) return
+    if (!label || segments.length >= 8) return
     await wheelSegmentsRepo.add({
       id: `seg${Date.now()}`,
       label,
@@ -87,7 +87,13 @@ export function BonusesPage() {
           <div className="flex-1">
             <Input label="Новый приз" value={newSegment} onChange={(e) => setNewSegment(e.target.value)} placeholder="15% скидка" />
           </div>
-          <Button variant="secondary" fullWidth={false} icon={<Plus className="h-4 w-4" />} onClick={addSegment}>
+          <Button
+            variant="secondary"
+            fullWidth={false}
+            icon={<Plus className="h-4 w-4" />}
+            disabled={segments.length >= 8}
+            onClick={addSegment}
+          >
             Добавить
           </Button>
         </Card>
@@ -110,7 +116,7 @@ export function BonusesPage() {
             </div>
           ))}
         </div>
-        <p className="text-caption mt-2 text-[var(--color-text-tertiary)]">Минимум 2 сегмента.</p>
+        <p className="text-caption mt-2 text-[var(--color-text-tertiary)]">От 2 до 8 сегментов — больше не влезет на колесо аккуратно.</p>
       </div>
     </div>
   )

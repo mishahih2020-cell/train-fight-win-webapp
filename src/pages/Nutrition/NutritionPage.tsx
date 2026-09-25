@@ -1,5 +1,5 @@
 import { Camera } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { CalorieRing, LineChart } from '@/components/ui/Chart'
 import { Card } from '@/components/ui/Card'
 import { Tabs } from '@/components/ui/Tabs'
@@ -13,6 +13,7 @@ export function NutritionPage() {
   const [tab, setTab] = useState<'Сегодня' | 'Аналитика'>('Сегодня')
   const [meals, setMeals] = useState<Meal[]>(MEALS)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const caloriesEaten = useMemo(() => meals.reduce((sum, m) => sum + m.kcal, 0), [meals])
 
   const addMealFromPhoto = () => {
     const now = new Date()
@@ -33,7 +34,7 @@ export function NutritionPage() {
       {tab === 'Сегодня' ? (
         <>
           <Card className="mt-4 flex items-center gap-4">
-            <CalorieRing current={CALORIES.current} total={CALORIES.total} />
+            <CalorieRing current={caloriesEaten} total={CALORIES.total} />
             <div className="flex flex-1 flex-col gap-2.5">
               {MACROS.map((m) => (
                 <div key={m.id} className="flex items-center justify-between">
