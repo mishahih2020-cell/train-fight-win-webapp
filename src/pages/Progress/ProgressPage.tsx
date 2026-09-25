@@ -15,7 +15,7 @@ export function ProgressPage() {
   const [tab, setTab] = useState<ProgressTab>('Вес')
 
   return (
-    <div className="min-h-dvh pb-8">
+    <div className="pb-8">
       <Header title="Прогресс" />
 
       <div className="mt-4 px-4">

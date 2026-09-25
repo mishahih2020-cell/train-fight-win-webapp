@@ -22,7 +22,7 @@ export function CreateWorkoutPage() {
   const removeExercise = (id: string) => setExercises((list) => list.filter((e) => e.id !== id))
 
   return (
-    <div className="min-h-dvh pb-8">
+    <div className="pb-8">
       <Header title="Новая тренировка">
         <div className="mt-4">
           <StepProgress step={2} total={4} />

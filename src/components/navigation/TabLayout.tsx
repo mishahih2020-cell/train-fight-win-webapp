@@ -3,7 +3,7 @@ import { BottomNav } from './BottomNav'
 
 export function TabLayout() {
   return (
-    <div className="min-h-dvh pb-24">
+    <div className="pb-24">
       <Outlet />
       <BottomNav />
     </div>

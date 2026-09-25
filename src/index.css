@@ -87,12 +87,15 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* No forced vh/dvh min-height here on purpose: those units can briefly
+     resolve to 0 inside Telegram's WebView while it negotiates the viewport
+     on expand(), collapsing #root to nothing visible (black screen). Screens
+     that must fill the viewport use `position: fixed; inset: 0` instead,
+     which sizes off the real viewport rect rather than a computed length. */
   #root {
     max-width: 480px;
     margin-inline: auto;
     position: relative;
-    min-height: 100vh;
-    min-height: 100dvh;
   }
 
   button {

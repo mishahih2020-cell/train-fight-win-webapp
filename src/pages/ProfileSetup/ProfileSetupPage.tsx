@@ -19,7 +19,7 @@ export function ProfileSetupPage() {
   const setGender = (gender: Gender) => setForm((f) => ({ ...f, gender }))
 
   return (
-    <div className="safe-top safe-bottom flex min-h-dvh flex-col px-5 pt-4 pb-6">
+    <div className="safe-top safe-bottom fixed inset-0 flex flex-col overflow-y-auto px-5 pt-4 pb-6">
       <StepProgress step={1} total={3} />
 
       <div className="mt-6">

@@ -13,7 +13,7 @@ export function WorkoutSessionPage() {
   const elapsed = useStopwatch(running)
 
   return (
-    <div className="safe-top safe-bottom flex min-h-dvh flex-col px-4 pt-4">
+    <div className="safe-top safe-bottom fixed inset-0 flex flex-col overflow-y-auto px-4 pt-4">
       <div className="flex items-center justify-between">
         <IconButton variant="card" onClick={() => navigate(-1)} aria-label="Назад">
           <ChevronLeft className="h-5 w-5" />
