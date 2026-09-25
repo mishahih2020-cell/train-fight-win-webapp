@@ -6,6 +6,8 @@ import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Timer } from '@/components/ui/Timer'
 import { formatClock, useStopwatch } from '@/hooks/useCountdown'
 import { SESSION_EXERCISES } from '@/data/mock'
+import { workoutLogRepo } from '@/db/repos'
+import { haptic } from '@/lib/haptics'
 import type { SessionExercise } from '@/types'
 
 interface SessionNavState {
@@ -24,6 +26,19 @@ export function WorkoutSessionPage() {
   const [index, setIndex] = useState(() => (customExercises ? 0 : Math.min(2, exercises.length - 1)))
   const elapsed = useStopwatch(running)
   const exercise = exercises[index]
+
+  const finishWorkout = async () => {
+    haptic('heavy')
+    await workoutLogRepo.add({
+      id: `wl${Date.now()}`,
+      title: navState?.workoutName ?? exercises[0]?.title ?? 'Тренировка',
+      category: 'Бойцовские',
+      date: new Date().toISOString().slice(0, 10),
+      durationSec: elapsed,
+      exerciseCount: exercises.length,
+    })
+    navigate('/workouts')
+  }
 
   return (
     <div className="safe-top safe-bottom overscroll-none fixed inset-0 flex flex-col overflow-y-auto px-4 pt-4">
@@ -75,7 +90,7 @@ export function WorkoutSessionPage() {
         >
           <SkipBack className="h-5 w-5" />
         </IconButton>
-        <IconButton variant="accent" size={72} onClick={() => navigate('/workouts')} aria-label="Завершить">
+        <IconButton variant="accent" size={72} onClick={finishWorkout} aria-label="Завершить">
           <Square className="h-7 w-7" fill="white" />
         </IconButton>
         <IconButton

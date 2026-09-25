@@ -4,29 +4,36 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Wheel } from '@/components/ui/Wheel'
 import { useAppState } from '@/context/AppStateContext'
-import { WHEEL_SEGMENTS } from '@/data/mock'
+import { awardBonus, wheelSegmentsRepo } from '@/db/repos'
+import { useRepoList } from '@/db/useRepo'
 import { haptic } from '@/lib/haptics'
 
 export function WheelPage() {
   const { wheelSpinsLeft, spendSpin } = useAppState()
+  const { items: segments } = useRepoList(wheelSegmentsRepo)
   const [rotation, setRotation] = useState(0)
   const [spinning, setSpinning] = useState(false)
   const [result, setResult] = useState<string | null>(null)
   const [infoOpen, setInfoOpen] = useState(false)
 
   const spin = () => {
-    if (spinning || wheelSpinsLeft <= 0) return
+    if (spinning || wheelSpinsLeft <= 0 || segments.length === 0) return
     haptic('medium')
     spendSpin()
     setSpinning(true)
-    const segIndex = Math.floor(Math.random() * WHEEL_SEGMENTS.length)
-    const segAngle = 360 / WHEEL_SEGMENTS.length
+    const segIndex = Math.floor(Math.random() * segments.length)
+    const segAngle = 360 / segments.length
     const targetOffset = 360 - (segIndex * segAngle + segAngle / 2)
     setRotation((r) => r + 1800 + targetOffset)
-    window.setTimeout(() => {
+    window.setTimeout(async () => {
       setSpinning(false)
       haptic('heavy')
-      setResult(WHEEL_SEGMENTS[segIndex].label.replace('\n', ' '))
+      const prize = segments[segIndex]
+      const label = prize.label.replace('\n', ' ')
+      if (!label.toLowerCase().includes('ещё раз')) {
+        await awardBonus(20, `Колесо фортуны: ${label}`)
+      }
+      setResult(label)
     }, 4200)
   }
 
@@ -35,7 +42,7 @@ export function WheelPage() {
       <Header title="Колесо Фортуны" />
 
       <div className="mt-6 flex flex-1 flex-col items-center px-4">
-        <Wheel segments={WHEEL_SEGMENTS} rotation={rotation} spinning={spinning} />
+        {segments.length > 0 && <Wheel segments={segments} rotation={rotation} spinning={spinning} />}
 
         <p className="text-body-secondary mt-8 max-w-[280px] text-center text-[var(--color-text-secondary)]">
           Крути колесо за покупку курса и получи бонус!

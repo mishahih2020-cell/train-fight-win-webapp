@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { AppStateProvider, useAppState } from '@/context/AppStateContext'
+import { AdminApp } from '@/admin/AdminApp'
 import { TabLayout } from '@/components/navigation/TabLayout'
 import { OnboardingPage } from '@/pages/Onboarding/OnboardingPage'
 import { ProfileSetupPage } from '@/pages/ProfileSetup/ProfileSetupPage'
@@ -109,6 +110,8 @@ function AppRoutes() {
       <Route path="/workouts/session" element={<WorkoutSessionPage />} />
       <Route path="/progress" element={<ProgressPage />} />
       <Route path="/wheel" element={<WheelPage />} />
+
+      <Route path="/admin/*" element={<AdminApp />} />
 
       {/* Any unmatched path (e.g. Telegram resuming the WebView on a stale
           deep path, or a GitHub Pages 404 fallback hit) bounces back to the

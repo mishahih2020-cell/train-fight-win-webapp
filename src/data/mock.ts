@@ -1,17 +1,13 @@
 import type {
   CalendarDay,
   ChatMessageData,
-  Course,
   Exercise,
   MacroStat,
   Meal,
   ProgressStat,
-  PurchaseRecord,
   QuickAction,
   SessionExercise,
-  SettingsItem,
   WeightPoint,
-  WheelSegment,
   Workout,
 } from '@/types'
 
@@ -33,23 +29,7 @@ export const WEEK_DAYS: CalendarDay[] = [
 
 export const TODAY_WORKOUT_LABEL = 'Сегодняшняя тренировка'
 
-export const WEIGHT_TODAY = { value: 70.0, deltaLabel: '+0.5 кг' }
 export const STREAK_DAYS = 12
-
-export const LAST_WORKOUT = {
-  label: 'Вчера · 1ч 45мин',
-  exercises: '6 упражнений',
-}
-
-export const WEIGHT_HISTORY: WeightPoint[] = [
-  { date: '1 сен', value: 72 },
-  { date: '4 сен', value: 71.6 },
-  { date: '8 сен', value: 71.2 },
-  { date: '11 сен', value: 70.8 },
-  { date: '15 сен', value: 71.4 },
-  { date: '18 сен', value: 70.6 },
-  { date: '22 сен', value: 70.0 },
-]
 
 export const WORKOUTS: Workout[] = [
   {
@@ -167,51 +147,3 @@ export const WEEKLY_CALORIES: WeightPoint[] = [
   { date: 'Вс', value: 2350 },
 ]
 
-export const PURCHASE_HISTORY: PurchaseRecord[] = [
-  { id: 'p1', title: 'FULL COURSE ON ELBOWS', date: '12 сен 2026', price: '2 990 ₽' },
-  { id: 'p2', title: 'DAY IN MY TRAINING CAMP', date: '30 авг 2026', price: 'Бесплатно' },
-  { id: 'p3', title: 'Подписка PRO — 1 месяц', date: '1 сен 2026', price: '990 ₽' },
-]
-
-export const COURSES: Course[] = [
-  {
-    id: 'c1',
-    title: 'FULL COURSE ON ELBOWS',
-    subtitle: 'Техника · Комбинации · Драйлы',
-    progress: 45,
-    cta: 'Продолжить',
-  },
-  {
-    id: 'c2',
-    title: 'DAY IN MY TRAINING CAMP',
-    subtitle: 'Полная программа со мной',
-    cta: 'Смотреть',
-    badge: 'Открыто',
-  },
-]
-
-export const PROFILE_STATS = [
-  { id: 'streak', label: 'Серия', value: '12' },
-  { id: 'workouts', label: 'Тренировок', value: '18' },
-  { id: 'weight', label: 'Вес', value: '70 кг' },
-]
-
-export const SETTINGS_ITEMS: SettingsItem[] = [
-  { id: 's1', label: 'Мои данные' },
-  { id: 's2', label: 'Мои цели' },
-  { id: 's3', label: 'Мои курсы' },
-  { id: 's4', label: 'История заказов' },
-  { id: 's5', label: 'Промокоды' },
-  { id: 's6', label: 'Бонусы', badge: '3' },
-  { id: 's7', label: 'Подписка', badge: 'PRO' },
-  { id: 's8', label: 'Настройки' },
-]
-
-export const WHEEL_SEGMENTS: WheelSegment[] = [
-  { id: 'seg1', label: '50%\nскидка', color: 'accent' },
-  { id: 'seg2', label: 'Бонусные\nбаллы', color: 'card' },
-  { id: 'seg3', label: '30%\nскидка', color: 'accent' },
-  { id: 'seg4', label: '10%\nскидка', color: 'card' },
-  { id: 'seg5', label: 'Бесплатный\nкурс', color: 'accent' },
-  { id: 'seg6', label: 'Попробуй\nещё раз', color: 'card' },
-]

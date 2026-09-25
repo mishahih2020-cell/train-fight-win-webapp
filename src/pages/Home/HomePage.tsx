@@ -1,16 +1,27 @@
 import { Flame } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Sparkline } from '@/components/ui/Chart'
-import { LAST_WORKOUT, STREAK_DAYS, TODAY_WORKOUT_LABEL, USER, WEEK_DAYS, WEIGHT_HISTORY, WEIGHT_TODAY } from '@/data/mock'
+import { STREAK_DAYS, TODAY_WORKOUT_LABEL, USER, WEEK_DAYS } from '@/data/mock'
+import { weightRepo, workoutLogRepo } from '@/db/repos'
+import { useRepoList } from '@/db/useRepo'
+import { formatRelativeDate, summarizeWeight } from '@/lib/weight'
 
 export function HomePage() {
   const navigate = useNavigate()
   const [selectedDay, setSelectedDay] = useState(WEEK_DAYS[1])
+  const { items: weightEntries } = useRepoList(weightRepo)
+  const { items: workoutLog } = useRepoList(workoutLogRepo)
+
+  const weight = useMemo(() => summarizeWeight(weightEntries), [weightEntries])
+  const lastWorkout = useMemo(
+    () => [...workoutLog].sort((a, b) => b.date.localeCompare(a.date))[0],
+    [workoutLog],
+  )
 
   return (
     <div className="safe-top px-4 pt-4">
@@ -73,10 +84,12 @@ export function HomePage() {
             <div className="text-caption text-[var(--color-text-secondary)]">Вес</div>
             <div className="mt-1 flex items-end justify-between">
               <div>
-                <div className="text-h2 text-[var(--color-text)]">{WEIGHT_TODAY.value.toFixed(1)} кг</div>
-                <div className="text-caption mt-0.5 font-medium text-[var(--color-success)]">{WEIGHT_TODAY.deltaLabel}</div>
+                <div className="text-h2 text-[var(--color-text)]">{weight.current.toFixed(1)} кг</div>
+                <div className="text-caption mt-0.5 font-medium" style={{ color: weight.deltaColor }}>
+                  {weight.deltaLabel}
+                </div>
               </div>
-              <Sparkline points={WEIGHT_HISTORY} />
+              {weight.points.length > 1 && <Sparkline points={weight.points} />}
             </div>
           </Card>
         </button>
@@ -96,10 +109,18 @@ export function HomePage() {
         <button onClick={() => navigate('/workouts')} className="press w-full text-left">
           <Card className="flex items-center gap-3">
             <PlaceholderImage className="h-12 w-12 shrink-0" rounded="rounded-[var(--radius-element)]" compact />
-            <div>
-              <div className="text-body-secondary font-semibold text-[var(--color-text)]">{LAST_WORKOUT.label}</div>
-              <div className="text-caption text-[var(--color-text-secondary)]">{LAST_WORKOUT.exercises}</div>
-            </div>
+            {lastWorkout ? (
+              <div>
+                <div className="text-body-secondary font-semibold text-[var(--color-text)]">
+                  {formatRelativeDate(lastWorkout.date)} · {lastWorkout.title}
+                </div>
+                <div className="text-caption text-[var(--color-text-secondary)]">
+                  {lastWorkout.exerciseCount} упражнений
+                </div>
+              </div>
+            ) : (
+              <div className="text-body-secondary text-[var(--color-text-secondary)]">Ещё нет завершённых тренировок</div>
+            )}
           </Card>
         </button>
       </div>

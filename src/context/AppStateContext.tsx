@@ -44,6 +44,7 @@ interface AppState {
   setProfile: (profile: ProfileAnswers) => void
   wheelSpinsLeft: number
   spendSpin: () => void
+  addSpin: (count?: number) => void
   onboarded: boolean
   completeOnboarding: () => void
 }
@@ -70,6 +71,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       return next
     })
 
+  const addSpin = (count = 1) =>
+    setWheelSpinsLeft((n) => {
+      const next = n + count
+      writePersisted({ profile, wheelSpinsLeft: next, onboarded })
+      return next
+    })
+
   const completeOnboarding = () => {
     setOnboarded(true)
     writePersisted({ profile, wheelSpinsLeft, onboarded: true })
@@ -77,7 +85,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppStateContext.Provider
-      value={{ profile, setProfile, wheelSpinsLeft, spendSpin, onboarded, completeOnboarding }}
+      value={{ profile, setProfile, wheelSpinsLeft, spendSpin, addSpin, onboarded, completeOnboarding }}
     >
       {children}
     </AppStateContext.Provider>

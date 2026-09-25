@@ -9,44 +9,72 @@ import {
   Ticket,
   User,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { IconButton } from '@/components/ui/IconButton'
 import { Modal } from '@/components/ui/Modal'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Switch } from '@/components/ui/Switch'
-import { PROFILE_STATS, PURCHASE_HISTORY, SETTINGS_ITEMS, USER } from '@/data/mock'
+import { STREAK_DAYS, USER } from '@/data/mock'
+import { awardBonus, bonusLedgerRepo, ordersRepo, promoCodesRepo, weightRepo, workoutLogRepo } from '@/db/repos'
+import { useRepoList } from '@/db/useRepo'
+import { summarizeWeight } from '@/lib/weight'
 
 type ModalKind = 'orders' | 'promo' | 'subscription' | 'settings' | null
 
 const ROUTES: Record<string, string> = { s1: '/profile-setup', s2: '/progress', s3: '/courses', s6: '/wheel' }
 const MODALS: Record<string, Exclude<ModalKind, null>> = { s4: 'orders', s5: 'promo', s7: 'subscription', s8: 'settings' }
 
-const ICONS: Record<string, typeof User> = {
-  s1: User,
-  s2: Target,
-  s3: GraduationCap,
-  s4: ShoppingBag,
-  s5: Ticket,
-  s6: Gift,
-  s7: Star,
-  s8: SettingsIcon,
-}
+const SETTINGS_ITEMS = [
+  { id: 's1', label: 'Мои данные', icon: User },
+  { id: 's2', label: 'Мои цели', icon: Target },
+  { id: 's3', label: 'Мои курсы', icon: GraduationCap },
+  { id: 's4', label: 'История заказов', icon: ShoppingBag },
+  { id: 's5', label: 'Промокоды', icon: Ticket },
+  { id: 's6', label: 'Бонусы', icon: Gift },
+  { id: 's7', label: 'Подписка', icon: Star, badge: 'PRO' },
+  { id: 's8', label: 'Настройки', icon: SettingsIcon },
+]
 
 export function ProfilePage() {
   const navigate = useNavigate()
   const [modal, setModal] = useState<ModalKind>(null)
   const [promoCode, setPromoCode] = useState('')
-  const [promoApplied, setPromoApplied] = useState(false)
+  const [promoResult, setPromoResult] = useState<'ok' | 'error' | null>(null)
   const [pushEnabled, setPushEnabled] = useState(true)
   const [soundEnabled, setSoundEnabled] = useState(true)
+
+  const { items: orders } = useRepoList(ordersRepo)
+  const { items: weightEntries } = useRepoList(weightRepo)
+  const { items: workoutLog } = useRepoList(workoutLogRepo)
+  const { items: bonusLedger, reload: reloadBonus } = useRepoList(bonusLedgerRepo)
+
+  const bonusBalance = useMemo(() => bonusLedger.reduce((sum, e) => sum + e.amount, 0), [bonusLedger])
+  const currentWeight = useMemo(() => summarizeWeight(weightEntries).current, [weightEntries])
+  const profileStats = [
+    { id: 'streak', label: 'Серия', value: `${STREAK_DAYS}` },
+    { id: 'workouts', label: 'Тренировок', value: `${workoutLog.length}` },
+    { id: 'weight', label: 'Вес', value: currentWeight ? `${currentWeight.toFixed(0)} кг` : '—' },
+  ]
 
   const openItem = (id: string) => {
     const to = ROUTES[id]
     if (to) return navigate(to)
     const kind = MODALS[id]
     if (kind) setModal(kind)
+  }
+
+  const applyPromo = async () => {
+    const codes = await promoCodesRepo.list()
+    const match = codes.find((c) => c.id === promoCode.trim().toUpperCase() && c.active)
+    if (!match) {
+      setPromoResult('error')
+      return
+    }
+    await awardBonus(match.discountPercent * 2, `Промокод ${match.id}`)
+    reloadBonus()
+    setPromoResult('ok')
   }
 
   return (
@@ -72,7 +100,7 @@ export function ProfilePage() {
       </div>
 
       <div className="mt-5 grid grid-cols-3 gap-3">
-        {PROFILE_STATS.map((s) => (
+        {profileStats.map((s) => (
           <div key={s.id} className="rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)] p-3 text-center">
             <div className="text-h2 text-[var(--color-text)]">{s.value}</div>
             <div className="text-caption mt-0.5 text-[var(--color-text-secondary)]">{s.label}</div>
@@ -82,7 +110,8 @@ export function ProfilePage() {
 
       <div className="mt-5 flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)]">
         {SETTINGS_ITEMS.map((item, i) => {
-          const Icon = ICONS[item.id]
+          const Icon = item.icon
+          const badge = item.id === 's6' ? String(bonusBalance) : item.badge
           return (
             <button
               key={item.id}
@@ -93,13 +122,13 @@ export function ProfilePage() {
             >
               <Icon className="h-5 w-5 text-[var(--color-text-secondary)]" />
               <span className="text-body flex-1 text-[var(--color-text)]">{item.label}</span>
-              {item.badge && (
+              {badge && (
                 <span
                   className={`text-caption rounded-[var(--radius-pill)] px-2 py-0.5 font-semibold ${
-                    item.badge === 'PRO' ? 'bg-[var(--color-accent)] text-white' : 'bg-[var(--color-card-2)] text-[var(--color-text-secondary)]'
+                    badge === 'PRO' ? 'bg-[var(--color-accent)] text-white' : 'bg-[var(--color-card-2)] text-[var(--color-text-secondary)]'
                   }`}
                 >
-                  {item.badge}
+                  {badge}
                 </span>
               )}
               <ChevronRight className="h-4 w-4 text-[var(--color-text-tertiary)]" />
@@ -113,18 +142,26 @@ export function ProfilePage() {
       <Modal open={modal === 'orders'} onClose={() => setModal(null)}>
         <div className="text-h2 mb-4 text-[var(--color-text)]">История заказов</div>
         <div className="flex flex-col gap-2.5">
-          {PURCHASE_HISTORY.map((p) => (
-            <div
-              key={p.id}
-              className="flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--color-divider)] bg-[var(--color-card-2)] px-4 py-3"
-            >
-              <div>
-                <div className="text-body-secondary font-semibold text-[var(--color-text)]">{p.title}</div>
-                <div className="text-caption mt-0.5 text-[var(--color-text-secondary)]">{p.date}</div>
-              </div>
-              <span className="text-body-secondary font-semibold text-[var(--color-text)]">{p.price}</span>
-            </div>
-          ))}
+          {orders.length > 0 ? (
+            [...orders]
+              .sort((a, b) => b.date.localeCompare(a.date))
+              .map((o) => (
+                <div
+                  key={o.id}
+                  className="flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--color-divider)] bg-[var(--color-card-2)] px-4 py-3"
+                >
+                  <div>
+                    <div className="text-body-secondary font-semibold text-[var(--color-text)]">{o.courseTitle}</div>
+                    <div className="text-caption mt-0.5 text-[var(--color-text-secondary)]">{o.date}</div>
+                  </div>
+                  <span className="text-body-secondary font-semibold text-[var(--color-text)]">
+                    {o.amount > 0 ? `${o.amount.toLocaleString('ru-RU')} ₽` : 'Бесплатно'}
+                  </span>
+                </div>
+              ))
+          ) : (
+            <p className="text-body-secondary text-[var(--color-text-secondary)]">Заказов пока нет</p>
+          )}
         </div>
       </Modal>
 
@@ -132,27 +169,30 @@ export function ProfilePage() {
         open={modal === 'promo'}
         onClose={() => {
           setModal(null)
-          setPromoApplied(false)
+          setPromoResult(null)
           setPromoCode('')
         }}
       >
         <div className="text-h2 mb-1 text-[var(--color-text)]">Промокод</div>
-        <p className="text-body-secondary mb-4 text-[var(--color-text-secondary)]">Введите код и получите бонус</p>
+        <p className="text-body-secondary mb-4 text-[var(--color-text-secondary)]">Введите код и получите бонусные баллы</p>
         <div className="flex h-12 items-center rounded-[var(--radius-button)] border border-[var(--color-divider)] bg-[var(--color-card-2)] px-4">
           <input
             value={promoCode}
             onChange={(e) => {
               setPromoCode(e.target.value.toUpperCase())
-              setPromoApplied(false)
+              setPromoResult(null)
             }}
-            placeholder="MARAT2026"
+            placeholder="MARAT10"
             className="text-body h-full w-full bg-transparent text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-tertiary)]"
           />
         </div>
-        {promoApplied && (
+        {promoResult === 'ok' && (
           <p className="text-caption mt-2 font-medium text-[var(--color-success)]">Промокод применён — бонус зачислен!</p>
         )}
-        <Button variant="primary" className="mt-5" disabled={!promoCode.trim()} onClick={() => setPromoApplied(true)}>
+        {promoResult === 'error' && (
+          <p className="text-caption mt-2 font-medium text-[var(--color-accent)]">Промокод не найден или недействителен</p>
+        )}
+        <Button variant="primary" className="mt-5" disabled={!promoCode.trim()} onClick={applyPromo}>
           Применить
         </Button>
       </Modal>
@@ -168,8 +208,11 @@ export function ProfilePage() {
           <li>• Приоритетная поддержка</li>
           <li>• Бонусные попытки колеса фортуны</li>
         </ul>
+        <p className="text-caption mt-4 rounded-[var(--radius-button)] bg-[var(--color-card-2)] p-3 text-[var(--color-text-tertiary)]">
+          Продление подписки заработает после подключения платёжной системы на сервере.
+        </p>
         <Button variant="primary" className="mt-5" onClick={() => setModal(null)}>
-          Продлить подписку
+          Понятно
         </Button>
       </Modal>
 
