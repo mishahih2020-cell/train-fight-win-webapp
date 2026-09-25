@@ -16,9 +16,10 @@ import { IconButton } from '@/components/ui/IconButton'
 import { Modal } from '@/components/ui/Modal'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Switch } from '@/components/ui/Switch'
-import { STREAK_DAYS, USER } from '@/data/mock'
+import { USER } from '@/data/mock'
 import { awardBonus, bonusLedgerRepo, ordersRepo, promoCodesRepo, weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
+import { computeWorkoutStreak } from '@/lib/streak'
 import { summarizeWeight } from '@/lib/weight'
 
 type ModalKind = 'orders' | 'promo' | 'subscription' | 'settings' | null
@@ -52,8 +53,9 @@ export function ProfilePage() {
 
   const bonusBalance = useMemo(() => bonusLedger.reduce((sum, e) => sum + e.amount, 0), [bonusLedger])
   const currentWeight = useMemo(() => summarizeWeight(weightEntries).current, [weightEntries])
+  const streak = useMemo(() => computeWorkoutStreak(workoutLog.map((w) => w.date)), [workoutLog])
   const profileStats = [
-    { id: 'streak', label: 'Серия', value: `${STREAK_DAYS}` },
+    { id: 'streak', label: 'Серия', value: `${streak}` },
     { id: 'workouts', label: 'Тренировок', value: `${workoutLog.length}` },
     { id: 'weight', label: 'Вес', value: currentWeight ? `${currentWeight.toFixed(0)} кг` : '—' },
   ]

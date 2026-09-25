@@ -80,12 +80,9 @@ export const WORKOUTS: Workout[] = [
 
 export const WORKOUT_CATEGORIES: Array<'Все' | Workout['category']> = ['Все', 'Бойцовские', 'Силовые', 'Бег']
 
-export const PROGRESS_STATS: ProgressStat[] = [
-  { id: 'ps1', label: 'Тренировок в этом месяце', value: '18', icon: 'chart' },
-  { id: 'ps2', label: 'Время в этом месяце', value: '32 ч', icon: 'clock' },
-  { id: 'ps3', label: 'Личные рекорды', value: '12', icon: 'trophy' },
-  { id: 'ps4', label: 'Серия', value: '12 дней', icon: 'flame' },
-]
+// Тренировок/время/серия теперь считаются из реальной истории (src/lib/streak.ts,
+// ProgressPage) — здесь остаётся только то, для чего пока нет модели данных.
+export const PROGRESS_STATS: ProgressStat[] = [{ id: 'ps3', label: 'Личные рекорды', value: '12', icon: 'trophy' }]
 
 export const MACROS: MacroStat[] = [
   { id: 'protein', label: 'Белки', value: 180, total: 200, unit: 'г', color: 'var(--color-success)' },

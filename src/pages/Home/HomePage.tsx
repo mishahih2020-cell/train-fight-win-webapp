@@ -6,22 +6,27 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Sparkline } from '@/components/ui/Chart'
-import { STREAK_DAYS, TODAY_WORKOUT_LABEL, USER, WEEK_DAYS } from '@/data/mock'
+import { useAppState } from '@/context/AppStateContext'
+import { TODAY_WORKOUT_LABEL, USER, WEEK_DAYS } from '@/data/mock'
 import { weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
+import { pluralizeRu } from '@/lib/pluralize'
+import { computeWorkoutStreak } from '@/lib/streak'
 import { formatRelativeDate, summarizeWeight } from '@/lib/weight'
 
 export function HomePage() {
   const navigate = useNavigate()
+  const { profile } = useAppState()
   const [selectedDay, setSelectedDay] = useState(WEEK_DAYS[1])
   const { items: weightEntries } = useRepoList(weightRepo)
   const { items: workoutLog } = useRepoList(workoutLogRepo)
 
-  const weight = useMemo(() => summarizeWeight(weightEntries), [weightEntries])
+  const weight = useMemo(() => summarizeWeight(weightEntries, profile.goal), [weightEntries, profile.goal])
   const lastWorkout = useMemo(
     () => [...workoutLog].sort((a, b) => b.date.localeCompare(a.date))[0],
     [workoutLog],
   )
+  const streak = useMemo(() => computeWorkoutStreak(workoutLog.map((w) => w.date)), [workoutLog])
 
   return (
     <div className="safe-top px-4 pt-4">
@@ -92,7 +97,7 @@ export function HomePage() {
                   {weight.deltaLabel}
                 </div>
               </div>
-              {weight.points.length > 1 && <Sparkline points={weight.points} />}
+              {weight.points.length > 1 && <Sparkline points={weight.points} positive={weight.trendingWell} />}
             </div>
           </Card>
         </button>
@@ -100,7 +105,9 @@ export function HomePage() {
           <Card>
             <div className="text-caption text-[var(--color-text-secondary)]">Серия</div>
             <div className="mt-1 flex items-end justify-between">
-              <div className="text-h2 text-[var(--color-text)]">{STREAK_DAYS} дней</div>
+              <div className="text-h2 text-[var(--color-text)]">
+                {streak} {pluralizeRu(streak, 'день', 'дня', 'дней')}
+              </div>
               <Flame className="h-6 w-6 text-[var(--color-warning)]" fill="var(--color-warning)" strokeWidth={0} />
             </div>
           </Card>

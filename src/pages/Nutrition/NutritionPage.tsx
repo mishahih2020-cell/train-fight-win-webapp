@@ -14,6 +14,15 @@ export function NutritionPage() {
   const [meals, setMeals] = useState<Meal[]>(MEALS)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const caloriesEaten = useMemo(() => meals.reduce((sum, m) => sum + m.kcal, 0), [meals])
+  // Meals only track kcal, not a full macro breakdown per dish — scale each
+  // macro by the same share of its daily target as calories are, so the
+  // bars move with every meal instead of sitting frozen at the seed values.
+  const progressShare = caloriesEaten / CALORIES.total
+  const macrosEaten = useMemo(
+    () => MACROS.map((m) => ({ ...m, value: Math.round(m.total * progressShare) })),
+    [progressShare],
+  )
+  const sortedMeals = useMemo(() => [...meals].sort((a, b) => a.time.localeCompare(b.time)), [meals])
 
   const addMealFromPhoto = () => {
     const now = new Date()
@@ -36,7 +45,7 @@ export function NutritionPage() {
           <Card className="mt-4 flex items-center gap-4">
             <CalorieRing current={caloriesEaten} total={CALORIES.total} />
             <div className="flex flex-1 flex-col gap-2.5">
-              {MACROS.map((m) => (
+              {macrosEaten.map((m) => (
                 <div key={m.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: m.color }} />
@@ -70,8 +79,12 @@ export function NutritionPage() {
           </button>
 
           <div className="mt-5 flex flex-col gap-2.5">
-            {meals.map((meal, i) => (
-              <FoodCard key={meal.id} meal={meal} onAdd={i === meals.length - 1 ? () => fileInputRef.current?.click() : undefined} />
+            {sortedMeals.map((meal, i) => (
+              <FoodCard
+                key={meal.id}
+                meal={meal}
+                onAdd={i === sortedMeals.length - 1 ? () => fileInputRef.current?.click() : undefined}
+              />
             ))}
           </div>
         </>
@@ -82,7 +95,7 @@ export function NutritionPage() {
             <LineChart points={WEEKLY_CALORIES} />
           </Card>
           <div className="grid grid-cols-3 gap-3">
-            {MACROS.map((m) => (
+            {macrosEaten.map((m) => (
               <Card key={m.id}>
                 <div className="flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: m.color }} />

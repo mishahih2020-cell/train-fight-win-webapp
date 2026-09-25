@@ -1,4 +1,5 @@
 import type { WeightPoint } from '@/types'
+import { calorieRingColor } from '@/lib/nutrition'
 
 function buildPath(points: WeightPoint[], width: number, height: number, padY = 6) {
   const values = points.map((p) => p.value)
@@ -80,6 +81,7 @@ export function CalorieRing({ current, total, size = 104 }: { current: number; t
   const circumference = 2 * Math.PI * radius
   const pct = Math.min(1, current / total)
   const offset = circumference * (1 - pct)
+  const color = calorieRingColor(current, total)
 
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
@@ -89,17 +91,19 @@ export function CalorieRing({ current, total, size = 104 }: { current: number; t
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="var(--color-accent)"
+          stroke={color}
           strokeWidth={stroke}
           strokeLinecap="round"
           fill="none"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          style={{ transition: 'stroke-dashoffset 0.4s ease' }}
+          style={{ transition: 'stroke-dashoffset 0.4s ease, stroke 0.4s ease' }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-h2 leading-none text-[var(--color-text)]">{current.toLocaleString('ru-RU')}</span>
+        <span className="text-h2 leading-none text-[var(--color-text)]" style={{ color }}>
+          {current.toLocaleString('ru-RU')}
+        </span>
         <span className="text-caption mt-1 text-[var(--color-text-secondary)]">/ {total.toLocaleString('ru-RU')}</span>
       </div>
     </div>

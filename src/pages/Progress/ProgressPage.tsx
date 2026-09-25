@@ -11,9 +11,12 @@ import { Modal } from '@/components/ui/Modal'
 import { Select } from '@/components/ui/Select'
 import { Tabs } from '@/components/ui/Tabs'
 import { WorkoutCard } from '@/components/cards/WorkoutCard'
+import { useAppState } from '@/context/AppStateContext'
 import { PROGRESS_STATS } from '@/data/mock'
 import { weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
+import { pluralizeRu } from '@/lib/pluralize'
+import { computeWorkoutStreak } from '@/lib/streak'
 import { formatRelativeDate, summarizeWeight } from '@/lib/weight'
 import type { ProgressTab, Workout } from '@/types'
 
@@ -22,13 +25,14 @@ const GOAL_WEIGHT = 67.0
 
 export function ProgressPage() {
   const navigate = useNavigate()
+  const { profile } = useAppState()
   const [tab, setTab] = useState<ProgressTab>('Вес')
   const { items: weightEntries, reload: reloadWeight } = useRepoList(weightRepo)
   const { items: workoutLog } = useRepoList(workoutLogRepo)
   const [addWeightOpen, setAddWeightOpen] = useState(false)
   const [newWeight, setNewWeight] = useState('')
 
-  const weight = useMemo(() => summarizeWeight(weightEntries), [weightEntries])
+  const weight = useMemo(() => summarizeWeight(weightEntries, profile.goal), [weightEntries, profile.goal])
 
   const loggedWorkouts: Workout[] = useMemo(
     () =>
@@ -50,6 +54,8 @@ export function ProgressPage() {
     const totalSec = workoutLog.reduce((sum, w) => sum + w.durationSec, 0)
     return Math.round((totalSec / 3600) * 10) / 10
   }, [workoutLog])
+
+  const streak = useMemo(() => computeWorkoutStreak(workoutLog.map((w) => w.date)), [workoutLog])
 
   const saveWeight = async () => {
     const value = Number(newWeight.replace(',', '.'))
@@ -148,7 +154,16 @@ export function ProgressPage() {
               </div>
               <div className="text-h2 mt-2 text-[var(--color-text)]">{monthDurationHours} ч</div>
             </Card>
-            {PROGRESS_STATS.filter((s) => s.icon === 'trophy' || s.icon === 'flame').map((stat) => {
+            <Card>
+              <div className="flex items-center justify-between">
+                <span className="text-caption text-[var(--color-text-secondary)]">Серия</span>
+                <Flame className="h-4 w-4 text-[var(--color-accent)]" />
+              </div>
+              <div className="text-h2 mt-2 text-[var(--color-text)]">
+                {streak} {pluralizeRu(streak, 'день', 'дня', 'дней')}
+              </div>
+            </Card>
+            {PROGRESS_STATS.filter((s) => s.icon === 'trophy').map((stat) => {
               const Icon = ICONS[stat.icon]
               return (
                 <Card key={stat.id}>

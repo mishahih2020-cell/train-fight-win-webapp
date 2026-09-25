@@ -11,19 +11,28 @@ export interface WeightSummary {
   current: number
   deltaLabel: string
   deltaColor: string
+  /** Whether the trend matches the user's goal — drives the sparkline's color to match deltaColor. */
+  trendingWell: boolean
 }
 
-export function summarizeWeight(entries: WeightLogEntry[]): WeightSummary {
+/** "Набор массы" wants weight going up; every other goal treats holding/losing as on-track. */
+function isGoodTrend(delta: number, goal: string) {
+  return goal === 'Набор массы' ? delta >= 0 : delta <= 0
+}
+
+export function summarizeWeight(entries: WeightLogEntry[], goal = ''): WeightSummary {
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date))
   const latest = sorted.at(-1)
   const prev = sorted.at(-2)
   const delta = latest && prev ? latest.value - prev.value : 0
+  const good = isGoodTrend(delta, goal)
 
   return {
     points: sorted.map((e) => ({ date: formatShortDate(e.date), value: e.value })),
     current: latest?.value ?? 0,
     deltaLabel: latest && prev ? `${delta > 0 ? '+' : ''}${delta.toFixed(1)} кг` : 'Нет данных за прошлый раз',
-    deltaColor: delta < 0 ? 'var(--color-success)' : delta > 0 ? 'var(--color-warning)' : 'var(--color-text-secondary)',
+    deltaColor: delta === 0 ? 'var(--color-text-secondary)' : good ? 'var(--color-success)' : 'var(--color-warning)',
+    trendingWell: good,
   }
 }
 
