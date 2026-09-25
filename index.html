@@ -5,6 +5,13 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0B0B0D" />
+    <!-- GitHub Pages sends Cache-Control: max-age=600 on this file regardless
+         (no custom-headers support on static Pages hosting) — this is a weak
+         best-effort hint on top of that; the real fix is the version-check
+         in src/lib/versionCheck.ts, which force-reloads stale sessions. -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>Marat Fight Club</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
