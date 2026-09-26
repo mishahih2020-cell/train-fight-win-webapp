@@ -75,6 +75,17 @@
     box-sizing: border-box;
   }
 
+  :root {
+    /* Extra top/bottom clearance for Telegram's OWN fullscreen-mode chrome
+       (its back arrow + "⋯" menu button, drawn over the WebView) — separate
+       from the device notch/home-indicator that env(safe-area-inset-*)
+       already covers. Populated at runtime from
+       Telegram.WebApp.contentSafeAreaInset (see App.tsx); 0 outside Telegram
+       or before that fires, so this is a no-op there. */
+    --tg-content-safe-top: 0px;
+    --tg-content-safe-bottom: 0px;
+  }
+
   html,
   body {
     background-color: var(--color-bg);
@@ -119,10 +130,10 @@
   }
 
   .safe-top {
-    padding-top: env(safe-area-inset-top);
+    padding-top: calc(env(safe-area-inset-top) + var(--tg-content-safe-top));
   }
   .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(env(safe-area-inset-bottom) + var(--tg-content-safe-bottom));
   }
 
   .press {

@@ -1,5 +1,12 @@
 export {}
 
+interface TelegramSafeAreaInset {
+  top: number
+  bottom: number
+  left: number
+  right: number
+}
+
 declare global {
   interface Window {
     Telegram?: {
@@ -12,6 +19,20 @@ declare global {
         setHeaderColor?: (color: string) => void
         setBackgroundColor?: (color: string) => void
         setBottomBarColor?: (color: string) => void
+        // Device notch/home-indicator inset (Bot API 8.0+) — separate from
+        // contentSafeAreaInset below, which is Telegram's OWN chrome.
+        safeAreaInset?: TelegramSafeAreaInset
+        // Extra inset needed to clear Telegram's fullscreen-mode back/menu
+        // buttons, drawn over the WebView content itself.
+        contentSafeAreaInset?: TelegramSafeAreaInset
+        onEvent?: (
+          event: 'safeAreaChanged' | 'contentSafeAreaChanged' | 'fullscreenChanged' | 'fullscreenFailed',
+          cb: () => void,
+        ) => void
+        offEvent?: (
+          event: 'safeAreaChanged' | 'contentSafeAreaChanged' | 'fullscreenChanged' | 'fullscreenFailed',
+          cb: () => void,
+        ) => void
         BackButton?: {
           show: () => void
           hide: () => void

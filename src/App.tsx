@@ -46,6 +46,47 @@ function useTelegramInit() {
   }, [])
 }
 
+// requestFullscreen() hides Telegram's own header — but Telegram then draws
+// its back arrow and "⋯" menu button directly over the top of the WebView
+// content instead, in an area device safe-area-inset knows nothing about.
+// contentSafeAreaInset is Telegram's own measurement of that overlay; the
+// transition to fullscreen is asynchronous, so this re-reads it whenever
+// Telegram says it changed rather than trusting a single read at boot.
+function useTelegramContentSafeArea() {
+  useEffect(() => {
+    const webApp = window.Telegram?.WebApp
+    if (!webApp) return
+
+    const apply = () => {
+      try {
+        const inset = webApp.contentSafeAreaInset
+        const root = document.documentElement.style
+        root.setProperty('--tg-content-safe-top', `${inset?.top ?? 0}px`)
+        root.setProperty('--tg-content-safe-bottom', `${inset?.bottom ?? 0}px`)
+      } catch {
+        // unsupported on this client — CSS vars stay at their 0px default
+      }
+    }
+
+    apply()
+    try {
+      webApp.onEvent?.('contentSafeAreaChanged', apply)
+      webApp.onEvent?.('fullscreenChanged', apply)
+    } catch {
+      // unsupported on this client — the single apply() above still ran
+    }
+
+    return () => {
+      try {
+        webApp.offEvent?.('contentSafeAreaChanged', apply)
+        webApp.offEvent?.('fullscreenChanged', apply)
+      } catch {
+        // unsupported on this client — nothing to clean up
+      }
+    }
+  }, [])
+}
+
 // "/" is the onboarding splash, but only until the user has actually filled
 // in their profile once — after that, opening the Mini App should land
 // straight on Home instead of re-running the first-run flow every time.
@@ -90,6 +131,7 @@ function useTelegramBackButton() {
 
 function AppRoutes() {
   useTelegramInit()
+  useTelegramContentSafeArea()
   useTelegramBackButton()
 
   return (
