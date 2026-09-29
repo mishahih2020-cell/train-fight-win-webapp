@@ -30,22 +30,18 @@ export interface WeightPoint {
   value: number
 }
 
-export type WorkoutCategory = 'Бойцовские' | 'Силовые' | 'Бег'
+export type WorkoutCategory = 'Бойцовские' | 'Силовые' | 'Бег' | 'Другое'
 
-export interface Exercise {
-  id: string
-  name: string
-  durationMin: number
-}
-
-export interface Workout {
+/** A saved, reusable workout — created via "Создать тренировку" and started from the list. */
+export interface SavedWorkout {
   id: string
   title: string
-  category: WorkoutCategory
-  durationMin: number
-  exerciseCount: number
-  dateLabel: string
-  exercises: Exercise[]
+  category: string
+  rounds: number
+  roundSec: number
+  restSec: number
+  exerciseNames: string[]
+  createdDate: string // yyyy-mm-dd
 }
 
 export type ProgressTab = 'Вес' | 'Тренировки' | 'Статистика'

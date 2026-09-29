@@ -7,12 +7,23 @@ import {
   SEED_WEIGHT,
   SEED_WHEEL_SEGMENTS,
   SEED_WORKOUT_LOG,
+  SEED_WORKOUTS,
 } from './seed'
-import type { BonusLedgerEntry, Course, OrderRecord, PromoCodeRecord, WeightLogEntry, WheelSegment, WorkoutLogEntry } from '@/types'
+import type {
+  BonusLedgerEntry,
+  Course,
+  OrderRecord,
+  PromoCodeRecord,
+  SavedWorkout,
+  WeightLogEntry,
+  WheelSegment,
+  WorkoutLogEntry,
+} from '@/types'
 
 export const coursesRepo = createRepo<Course>('courses', SEED_COURSES)
 export const promoCodesRepo = createRepo<PromoCodeRecord>('promo_codes', SEED_PROMO_CODES)
 export const weightRepo = createRepo<WeightLogEntry>('weight_log', SEED_WEIGHT)
+export const workoutsRepo = createRepo<SavedWorkout>('workouts', SEED_WORKOUTS)
 export const workoutLogRepo = createRepo<WorkoutLogEntry>('workout_log', SEED_WORKOUT_LOG)
 export const ordersRepo = createRepo<OrderRecord>('orders', SEED_ORDERS)
 export const bonusLedgerRepo = createRepo<BonusLedgerEntry>('bonus_ledger', SEED_BONUS_LEDGER)

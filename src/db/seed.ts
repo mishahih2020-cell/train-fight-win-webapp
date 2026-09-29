@@ -1,4 +1,4 @@
-import type { Course, OrderRecord, PromoCodeRecord, WeightLogEntry, WheelSegment, WorkoutLogEntry } from '@/types'
+import type { Course, OrderRecord, PromoCodeRecord, SavedWorkout, WeightLogEntry, WheelSegment, WorkoutLogEntry } from '@/types'
 
 export const SEED_COURSES: Course[] = [
   {
@@ -32,6 +32,49 @@ export const SEED_WEIGHT: WeightLogEntry[] = [
   { id: 'w2', date: '2026-09-08', value: 71.2 },
   { id: 'w3', date: '2026-09-15', value: 71.4 },
   { id: 'w4', date: '2026-09-22', value: 70.0 },
+]
+
+export const SEED_WORKOUTS: SavedWorkout[] = [
+  {
+    id: 'w1',
+    title: 'Muay Thai',
+    category: 'Бойцовские',
+    rounds: 8,
+    roundSec: 180,
+    restSec: 60,
+    exerciseNames: ['Разминка', 'Удары руками', 'Удары ногами'],
+    createdDate: '2026-09-29',
+  },
+  {
+    id: 'w2',
+    title: 'Strength',
+    category: 'Силовые',
+    rounds: 5,
+    roundSec: 60,
+    restSec: 30,
+    exerciseNames: ['Приседания', 'Отжимания', 'Планка'],
+    createdDate: '2026-09-28',
+  },
+  {
+    id: 'w3',
+    title: 'Running',
+    category: 'Бег',
+    rounds: 1,
+    roundSec: 2700,
+    restSec: 60,
+    exerciseNames: ['Бег 12 км'],
+    createdDate: '2026-09-22',
+  },
+  {
+    id: 'w4',
+    title: 'Sparring',
+    category: 'Бойцовские',
+    rounds: 6,
+    roundSec: 180,
+    restSec: 60,
+    exerciseNames: ['Спарринг'],
+    createdDate: '2026-09-20',
+  },
 ]
 
 export const SEED_WORKOUT_LOG: WorkoutLogEntry[] = [

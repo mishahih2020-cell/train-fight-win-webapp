@@ -1,4 +1,4 @@
-import type { CalendarDay, ChatMessageData, MacroStat, Meal, ProgressStat, QuickAction, WeightPoint, Workout } from '@/types'
+import type { CalendarDay, ChatMessageData, MacroStat, Meal, ProgressStat, QuickAction, WeightPoint, WorkoutCategory } from '@/types'
 
 export const USER = {
   firstName: 'Marat',
@@ -20,54 +20,7 @@ export const TODAY_WORKOUT_LABEL = 'Сегодняшняя тренировка'
 
 export const STREAK_DAYS = 12
 
-export const WORKOUTS: Workout[] = [
-  {
-    id: 'w1',
-    title: 'Muay Thai',
-    category: 'Бойцовские',
-    durationMin: 45,
-    exerciseCount: 6,
-    dateLabel: 'Сегодня',
-    exercises: [
-      { id: 'e1', name: 'Разминка', durationMin: 10 },
-      { id: 'e2', name: 'Удары руками', durationMin: 15 },
-      { id: 'e3', name: 'Удары ногами', durationMin: 20 },
-    ],
-  },
-  {
-    id: 'w2',
-    title: 'Strength',
-    category: 'Силовые',
-    durationMin: 20,
-    exerciseCount: 5,
-    dateLabel: 'Вчера',
-    exercises: [
-      { id: 'e4', name: 'Приседания', durationMin: 8 },
-      { id: 'e5', name: 'Отжимания', durationMin: 6 },
-      { id: 'e6', name: 'Планка', durationMin: 6 },
-    ],
-  },
-  {
-    id: 'w3',
-    title: 'Running',
-    category: 'Бег',
-    durationMin: 45,
-    exerciseCount: 1,
-    dateLabel: 'Пн, 22 Сен',
-    exercises: [{ id: 'e7', name: 'Бег 12 км', durationMin: 45 }],
-  },
-  {
-    id: 'w4',
-    title: 'Sparring',
-    category: 'Бойцовские',
-    durationMin: 30,
-    exerciseCount: 1,
-    dateLabel: 'Сб, 20 Сен',
-    exercises: [{ id: 'e8', name: 'Спарринг', durationMin: 30 }],
-  },
-]
-
-export const WORKOUT_CATEGORIES: Array<'Все' | Workout['category']> = ['Все', 'Бойцовские', 'Силовые', 'Бег']
+export const WORKOUT_CATEGORIES: Array<'Все' | WorkoutCategory> = ['Все', 'Бойцовские', 'Силовые', 'Бег', 'Другое']
 
 // Тренировок/время/серия теперь считаются из реальной истории (src/lib/streak.ts,
 // ProgressPage) — здесь остаётся только то, для чего пока нет модели данных.

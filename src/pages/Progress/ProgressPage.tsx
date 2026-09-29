@@ -19,7 +19,8 @@ import { pluralizeRu } from '@/lib/pluralize'
 import { computeWorkoutStreak } from '@/lib/streak'
 import { primeAudio } from '@/lib/sound'
 import { formatRelativeDate, summarizeWeight } from '@/lib/weight'
-import type { ProgressTab, Workout } from '@/types'
+import { formatClock } from '@/hooks/useCountdown'
+import type { ProgressTab } from '@/types'
 
 const ICONS = { chart: BarChart3, clock: Clock, trophy: Trophy, flame: Flame }
 const GOAL_WEIGHT = 67.0
@@ -35,19 +36,8 @@ export function ProgressPage() {
 
   const weight = useMemo(() => summarizeWeight(weightEntries, profile.goal), [weightEntries, profile.goal])
 
-  const loggedWorkouts: Workout[] = useMemo(
-    () =>
-      [...workoutLog]
-        .sort((a, b) => b.date.localeCompare(a.date))
-        .map((log) => ({
-          id: log.id,
-          title: log.title,
-          category: log.category as Workout['category'],
-          durationMin: Math.round(log.durationSec / 60),
-          exerciseCount: log.exerciseCount,
-          dateLabel: formatRelativeDate(log.date),
-          exercises: [],
-        })),
+  const loggedWorkouts = useMemo(
+    () => [...workoutLog].sort((a, b) => b.date.localeCompare(a.date)),
     [workoutLog],
   )
 
@@ -127,7 +117,9 @@ export function ProgressPage() {
               loggedWorkouts.map((w) => (
                 <WorkoutCard
                   key={w.id}
-                  workout={w}
+                  title={w.title}
+                  meta={`${formatClock(w.durationSec)} · ${w.exerciseCount} ${pluralizeRu(w.exerciseCount, 'раунд', 'раунда', 'раундов')}`}
+                  dateLabel={formatRelativeDate(w.date)}
                   onClick={() => {
                     primeAudio()
                     navigate('/workouts/session', { state: { workoutName: w.title, category: w.category } })
