@@ -4,8 +4,17 @@ import { Button } from '@/components/ui/Button'
 import { Chips, Tabs } from '@/components/ui/Tabs'
 import { WorkoutCard } from '@/components/cards/WorkoutCard'
 import { WORKOUTS, WORKOUT_CATEGORIES } from '@/data/mock'
-import { buildSessionExercises } from '@/lib/session'
+import { DEFAULT_REST_SEC, DEFAULT_ROUND_SEC } from '@/lib/session'
+import { primeAudio } from '@/lib/sound'
 import type { Workout } from '@/types'
+
+// Library workouts only carry a total duration + a few exercise names, not a
+// round count — derive a round count that actually fills that duration
+// instead of "1 round" for a 45-minute run that happens to list one exercise.
+function roundsForDuration(durationMin: number) {
+  const cycleSec = DEFAULT_ROUND_SEC + DEFAULT_REST_SEC
+  return Math.max(1, Math.min(15, Math.round((durationMin * 60) / cycleSec)))
+}
 
 export function WorkoutsPage() {
   const navigate = useNavigate()
@@ -17,10 +26,19 @@ export function WorkoutsPage() {
     [category],
   )
 
-  const startWorkout = (w: Workout) =>
+  const startWorkout = (w: Workout) => {
+    primeAudio()
     navigate('/workouts/session', {
-      state: { workoutName: w.title, category: w.category, exercises: buildSessionExercises(w.exercises) },
+      state: {
+        workoutName: w.title,
+        category: w.category,
+        rounds: roundsForDuration(w.durationMin),
+        roundSec: DEFAULT_ROUND_SEC,
+        restSec: DEFAULT_REST_SEC,
+        exerciseNames: w.exercises.map((e) => e.name),
+      },
     })
+  }
 
   return (
     <div className="safe-top px-4 pt-4">

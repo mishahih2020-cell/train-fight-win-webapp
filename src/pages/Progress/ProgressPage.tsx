@@ -17,6 +17,7 @@ import { weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { pluralizeRu } from '@/lib/pluralize'
 import { computeWorkoutStreak } from '@/lib/streak'
+import { primeAudio } from '@/lib/sound'
 import { formatRelativeDate, summarizeWeight } from '@/lib/weight'
 import type { ProgressTab, Workout } from '@/types'
 
@@ -127,7 +128,10 @@ export function ProgressPage() {
                 <WorkoutCard
                   key={w.id}
                   workout={w}
-                  onClick={() => navigate('/workouts/session', { state: { workoutName: w.title, category: w.category } })}
+                  onClick={() => {
+                    primeAudio()
+                    navigate('/workouts/session', { state: { workoutName: w.title, category: w.category } })
+                  }}
                 />
               ))
             ) : (

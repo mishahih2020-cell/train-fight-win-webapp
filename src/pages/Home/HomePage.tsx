@@ -12,6 +12,7 @@ import { weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { pluralizeRu } from '@/lib/pluralize'
 import { computeWorkoutStreak } from '@/lib/streak'
+import { primeAudio } from '@/lib/sound'
 import { formatRelativeDate, summarizeWeight } from '@/lib/weight'
 
 export function HomePage() {
@@ -78,7 +79,10 @@ export function HomePage() {
             </div>
             <Button
               variant="primary"
-              onClick={() => navigate('/workouts/session', { state: { workoutName: selectedDay.workoutTitle } })}
+              onClick={() => {
+                primeAudio()
+                navigate('/workouts/session', { state: { workoutName: selectedDay.workoutTitle } })
+              }}
             >
               Начать тренировку
             </Button>

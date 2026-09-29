@@ -1,13 +1,15 @@
-import type { Exercise, SessionExercise } from '@/types'
+export const DEFAULT_ROUNDS = 5
+export const DEFAULT_ROUND_SEC = 180
+export const DEFAULT_REST_SEC = 60
 
-/** Turns a flat exercise list (as authored in Create-workout or a library workout) into the
- * round/time/rest shape the session screen displays. */
-export function buildSessionExercises(exercises: Exercise[]): SessionExercise[] {
-  return exercises.map((ex, i) => ({
-    id: ex.id,
-    title: ex.name,
-    round: `${i + 1}/${exercises.length}`,
-    time: `${String(ex.durationMin).padStart(2, '0')}:00`,
-    rest: '00:30',
-  }))
+/** What every "Начать тренировку" entry point hands to /workouts/session via router state. */
+export interface SessionNavState {
+  workoutName?: string
+  category?: string
+  courseId?: string
+  rounds?: number
+  roundSec?: number
+  restSec?: number
+  /** Shown as each round's sub-label, cycling if there are fewer names than rounds. */
+  exerciseNames?: string[]
 }

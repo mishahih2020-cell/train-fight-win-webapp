@@ -7,6 +7,7 @@ import { Tabs } from '@/components/ui/Tabs'
 import { awardBonus, coursesRepo, ordersRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { useAppState } from '@/context/AppStateContext'
+import { primeAudio } from '@/lib/sound'
 import type { Course } from '@/types'
 
 export function CoursesPage() {
@@ -24,6 +25,7 @@ export function CoursesPage() {
 
   const handleCta = (course: Course) => {
     if (course.purchased) {
+      primeAudio()
       navigate('/workouts/session', { state: { workoutName: course.title, courseId: course.id } })
       return
     }

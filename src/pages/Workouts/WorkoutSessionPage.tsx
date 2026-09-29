@@ -1,46 +1,67 @@
 import { ChevronLeft, Pause, Play, SkipBack, SkipForward, Square } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/Button'
 import { IconButton } from '@/components/ui/IconButton'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Timer } from '@/components/ui/Timer'
-import { formatClock, useStopwatch } from '@/hooks/useCountdown'
-import { SESSION_EXERCISES } from '@/data/mock'
+import { useAppState } from '@/context/AppStateContext'
 import { coursesRepo, workoutLogRepo } from '@/db/repos'
+import { useRoundTimer } from '@/hooks/useRoundTimer'
+import { formatClock } from '@/hooks/useCountdown'
 import { haptic } from '@/lib/haptics'
-import type { SessionExercise } from '@/types'
-
-interface SessionNavState {
-  workoutName?: string
-  category?: string
-  exercises?: SessionExercise[]
-  courseId?: string
-}
+import { pluralizeRu } from '@/lib/pluralize'
+import { DEFAULT_REST_SEC, DEFAULT_ROUNDS, DEFAULT_ROUND_SEC, type SessionNavState } from '@/lib/session'
+import { playComplete, playRestStart, playRoundStart, playWarning } from '@/lib/sound'
 
 export function WorkoutSessionPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const navState = location.state as SessionNavState | null
-  const customExercises = navState?.exercises?.length ? navState.exercises : null
-  const exercises = customExercises ?? SESSION_EXERCISES
+  const { soundEnabled } = useAppState()
+  const navState = (location.state as SessionNavState | null) ?? {}
 
-  const [running, setRunning] = useState(true)
-  const [index, setIndex] = useState(() => (customExercises ? 0 : Math.min(2, exercises.length - 1)))
-  const elapsed = useStopwatch(running)
-  const exercise = exercises[index]
+  const config = useMemo(
+    () => ({
+      rounds: navState.rounds ?? DEFAULT_ROUNDS,
+      roundSec: navState.roundSec ?? DEFAULT_ROUND_SEC,
+      restSec: navState.restSec ?? DEFAULT_REST_SEC,
+    }),
+    // Captured once for the lifetime of this screen — see useRoundTimer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
+  const exerciseNames = navState.exerciseNames ?? []
+
+  const timer = useRoundTimer(config, {
+    onRoundStart: () => {
+      haptic('medium')
+      if (soundEnabled) playRoundStart()
+    },
+    onRestStart: () => {
+      haptic('light')
+      if (soundEnabled) playRestStart()
+    },
+    onWarning: () => {
+      haptic('light')
+      if (soundEnabled) playWarning()
+    },
+    onComplete: () => {
+      haptic('heavy')
+      if (soundEnabled) playComplete()
+    },
+  })
 
   const finishWorkout = async () => {
-    haptic('heavy')
     await workoutLogRepo.add({
       id: `wl${Date.now()}`,
-      title: navState?.workoutName ?? exercises[0]?.title ?? 'Тренировка',
-      category: navState?.category ?? 'Силовые',
+      title: navState.workoutName ?? 'Тренировка',
+      category: navState.category ?? 'Силовые',
       date: new Date().toISOString().slice(0, 10),
-      durationSec: elapsed,
-      exerciseCount: exercises.length,
+      durationSec: timer.elapsedSec,
+      exerciseCount: timer.rounds,
     })
 
-    if (navState?.courseId) {
+    if (navState.courseId) {
       const course = await coursesRepo.get(navState.courseId)
       if (course) {
         const nextProgress = Math.min(100, (course.progress ?? 0) + 20)
@@ -51,42 +72,70 @@ export function WorkoutSessionPage() {
     navigate('/workouts')
   }
 
+  if (timer.phase === 'done') {
+    return (
+      <div className="safe-top safe-bottom overscroll-none fixed inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
+        <div className="text-h1 text-[var(--color-text)]">Тренировка завершена 🎉</div>
+        <p className="text-body-secondary text-[var(--color-text-secondary)]">
+          {timer.rounds} {pluralizeRu(timer.rounds, 'раунд', 'раунда', 'раундов')} · {formatClock(timer.elapsedSec)}
+        </p>
+        <Button variant="primary" className="mt-6" onClick={finishWorkout}>
+          Готово
+        </Button>
+      </div>
+    )
+  }
+
+  const phaseColor = timer.phase === 'rest' ? 'var(--color-success)' : 'var(--color-accent)'
+  const phaseLabel =
+    timer.phase === 'prep'
+      ? 'Приготовьтесь'
+      : timer.phase === 'round'
+        ? `Раунд ${timer.roundIndex + 1} из ${timer.rounds}`
+        : 'Отдых'
+  const currentExerciseName =
+    timer.phase === 'round' && exerciseNames.length > 0 ? exerciseNames[timer.roundIndex % exerciseNames.length] : null
+
   return (
     <div className="safe-top safe-bottom overscroll-none fixed inset-0 flex flex-col overflow-y-auto px-4 pt-4">
       <div className="flex items-center justify-between">
         <IconButton variant="card" onClick={() => navigate(-1)} aria-label="Назад">
           <ChevronLeft className="h-5 w-5" />
         </IconButton>
-        <Timer label={formatClock(elapsed)} />
-        <IconButton variant="card" onClick={() => setRunning((r) => !r)} aria-label={running ? 'Пауза' : 'Продолжить'}>
-          {running ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+        <Timer label={formatClock(timer.secondsLeft)} color={phaseColor} />
+        <IconButton variant="card" onClick={timer.toggleRunning} aria-label={timer.running ? 'Пауза' : 'Продолжить'}>
+          {timer.running ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
         </IconButton>
       </div>
 
       <div className="mt-6 text-center">
-        {navState?.workoutName && (
+        {navState.workoutName && (
           <p className="text-caption font-semibold tracking-wide text-[var(--color-accent)] uppercase">{navState.workoutName}</p>
         )}
-        <h1 className="text-h2 text-[var(--color-text)]">{exercise.title}</h1>
-        <p className="text-body-secondary mt-1 text-[var(--color-text-secondary)]">
-          {index + 1} из {exercises.length}
-        </p>
+        <h1 className="text-h2 mt-1" style={{ color: phaseColor }}>
+          {phaseLabel}
+        </h1>
+        {currentExerciseName && (
+          <p className="text-body-secondary mt-1 text-[var(--color-text-secondary)]">{currentExerciseName}</p>
+        )}
       </div>
 
       <PlaceholderImage className="mt-6 aspect-[4/5] w-full flex-1" />
 
       <div className="mt-5 grid grid-cols-3 gap-3">
         <div className="rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)] p-3 text-center">
-          <div className="text-caption text-[var(--color-text-secondary)]">Раунды</div>
-          <div className="text-h2 mt-1 text-[var(--color-text)]">{exercise.round}</div>
+          <div className="text-caption text-[var(--color-text-secondary)]">Раунд</div>
+          <div className="text-h2 mt-1 text-[var(--color-text)]">
+            {Math.min(timer.roundIndex + 1, timer.rounds)}/{timer.rounds}
+          </div>
         </div>
         <div className="rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)] p-3 text-center">
-          <div className="text-caption text-[var(--color-text-secondary)]">Время</div>
-          <div className="text-h2 mt-1 text-[var(--color-text)]">{exercise.time}</div>
+          <div className="text-caption text-[var(--color-text-secondary)]">Раунд длится</div>
+          <div className="text-h2 mt-1 text-[var(--color-text)]">{formatClock(timer.roundSec)}</div>
         </div>
         <div className="rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)] p-3 text-center">
           <div className="text-caption text-[var(--color-text-secondary)]">Отдых</div>
-          <div className="text-h2 mt-1 text-[var(--color-text)]">{exercise.rest}</div>
+          <div className="text-h2 mt-1 text-[var(--color-text)]">{formatClock(timer.restSec)}</div>
         </div>
       </div>
 
@@ -94,9 +143,9 @@ export function WorkoutSessionPage() {
         <IconButton
           variant="card"
           size={48}
-          disabled={index === 0}
-          onClick={() => setIndex((i) => Math.max(0, i - 1))}
-          aria-label="Предыдущее упражнение"
+          disabled={!timer.canSkipPrev}
+          onClick={timer.skipPrev}
+          aria-label="Предыдущий раунд"
           className="disabled:opacity-40"
         >
           <SkipBack className="h-5 w-5" />
@@ -107,9 +156,9 @@ export function WorkoutSessionPage() {
         <IconButton
           variant="card"
           size={48}
-          disabled={index === exercises.length - 1}
-          onClick={() => setIndex((i) => Math.min(exercises.length - 1, i + 1))}
-          aria-label="Следующее упражнение"
+          disabled={!timer.canSkipNext}
+          onClick={timer.skipNext}
+          aria-label="Следующий раунд"
           className="disabled:opacity-40"
         >
           <SkipForward className="h-5 w-5" />

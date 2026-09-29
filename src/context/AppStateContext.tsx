@@ -17,6 +17,7 @@ interface PersistedState {
   profile: ProfileAnswers
   wheelSpinsLeft: number
   onboarded: boolean
+  soundEnabled: boolean
 }
 
 // Telegram's in-app browser can restrict storage access in rare/older
@@ -47,6 +48,8 @@ interface AppState {
   addSpin: (count?: number) => void
   onboarded: boolean
   completeOnboarding: () => void
+  soundEnabled: boolean
+  setSoundEnabled: (enabled: boolean) => void
 }
 
 const AppStateContext = createContext<AppState | null>(null)
@@ -58,34 +61,50 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }))
   const [wheelSpinsLeft, setWheelSpinsLeft] = useState(() => readPersisted().wheelSpinsLeft ?? 1)
   const [onboarded, setOnboarded] = useState(() => readPersisted().onboarded ?? false)
+  const [soundEnabled, setSoundEnabledState] = useState(() => readPersisted().soundEnabled ?? true)
 
   const setProfile = (next: ProfileAnswers) => {
     setProfileState(next)
-    writePersisted({ profile: next, wheelSpinsLeft, onboarded })
+    writePersisted({ profile: next, wheelSpinsLeft, onboarded, soundEnabled })
   }
 
   const spendSpin = () =>
     setWheelSpinsLeft((n) => {
       const next = Math.max(0, n - 1)
-      writePersisted({ profile, wheelSpinsLeft: next, onboarded })
+      writePersisted({ profile, wheelSpinsLeft: next, onboarded, soundEnabled })
       return next
     })
 
   const addSpin = (count = 1) =>
     setWheelSpinsLeft((n) => {
       const next = n + count
-      writePersisted({ profile, wheelSpinsLeft: next, onboarded })
+      writePersisted({ profile, wheelSpinsLeft: next, onboarded, soundEnabled })
       return next
     })
 
   const completeOnboarding = () => {
     setOnboarded(true)
-    writePersisted({ profile, wheelSpinsLeft, onboarded: true })
+    writePersisted({ profile, wheelSpinsLeft, onboarded: true, soundEnabled })
+  }
+
+  const setSoundEnabled = (enabled: boolean) => {
+    setSoundEnabledState(enabled)
+    writePersisted({ profile, wheelSpinsLeft, onboarded, soundEnabled: enabled })
   }
 
   return (
     <AppStateContext.Provider
-      value={{ profile, setProfile, wheelSpinsLeft, spendSpin, addSpin, onboarded, completeOnboarding }}
+      value={{
+        profile,
+        setProfile,
+        wheelSpinsLeft,
+        spendSpin,
+        addSpin,
+        onboarded,
+        completeOnboarding,
+        soundEnabled,
+        setSoundEnabled,
+      }}
     >
       {children}
     </AppStateContext.Provider>

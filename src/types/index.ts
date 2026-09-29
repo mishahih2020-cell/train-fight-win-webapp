@@ -111,14 +111,6 @@ export interface WheelSegment {
   color: 'accent' | 'card'
 }
 
-export interface SessionExercise {
-  id: string
-  title: string
-  round: string
-  time: string
-  rest: string
-}
-
 // ---- Local "database" records (src/db) ----
 // Same shape a future server API would return, so swapping the storage
 // layer later doesn't change any call site — see src/db/README.md.

@@ -16,6 +16,7 @@ import { IconButton } from '@/components/ui/IconButton'
 import { Modal } from '@/components/ui/Modal'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Switch } from '@/components/ui/Switch'
+import { useAppState } from '@/context/AppStateContext'
 import { USER } from '@/data/mock'
 import { awardBonus, bonusLedgerRepo, ordersRepo, promoCodesRepo, weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
@@ -40,11 +41,11 @@ const SETTINGS_ITEMS = [
 
 export function ProfilePage() {
   const navigate = useNavigate()
+  const { soundEnabled, setSoundEnabled } = useAppState()
   const [modal, setModal] = useState<ModalKind>(null)
   const [promoCode, setPromoCode] = useState('')
   const [promoResult, setPromoResult] = useState<'ok' | 'error' | 'used' | null>(null)
   const [pushEnabled, setPushEnabled] = useState(true)
-  const [soundEnabled, setSoundEnabled] = useState(true)
 
   const { items: orders } = useRepoList(ordersRepo)
   const { items: weightEntries } = useRepoList(weightRepo)
