@@ -12,7 +12,7 @@ import { formatClock } from '@/hooks/useCountdown'
 import { haptic } from '@/lib/haptics'
 import { pluralizeRu } from '@/lib/pluralize'
 import { DEFAULT_REST_SEC, DEFAULT_ROUNDS, DEFAULT_ROUND_SEC, type SessionNavState } from '@/lib/session'
-import { playComplete, playRestStart, playRoundStart, playWarning } from '@/lib/sound'
+import { playComplete, playCountdownTick, playRoundEnd, playRoundStart, playWarning } from '@/lib/sound'
 
 export function WorkoutSessionPage() {
   const navigate = useNavigate()
@@ -38,12 +38,16 @@ export function WorkoutSessionPage() {
       if (soundEnabled) playRoundStart()
     },
     onRestStart: () => {
-      haptic('light')
-      if (soundEnabled) playRestStart()
+      haptic('heavy')
+      if (soundEnabled) playRoundEnd()
     },
     onWarning: () => {
       haptic('light')
       if (soundEnabled) playWarning()
+    },
+    onCountdownTick: () => {
+      haptic('light')
+      if (soundEnabled) playCountdownTick()
     },
     onComplete: () => {
       haptic('heavy')

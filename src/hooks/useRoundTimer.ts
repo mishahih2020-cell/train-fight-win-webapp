@@ -15,6 +15,8 @@ export interface RoundTimerEvents {
   onRestStart?: () => void
   /** Fires once, ~10 seconds before a round ends. */
   onWarning?: () => void
+  /** Fires on each of the last 3 seconds of prep/rest, right before a round starts. */
+  onCountdownTick?: () => void
   onComplete?: () => void
 }
 
@@ -83,6 +85,7 @@ export function useRoundTimer(config: RoundTimerConfig, events: RoundTimerEvents
           return next
         }
         if (secondsLeft === 10 && prev.phase === 'round') eventsRef.current.onWarning?.()
+        if (secondsLeft <= 3 && (prev.phase === 'rest' || prev.phase === 'prep')) eventsRef.current.onCountdownTick?.()
         return { ...prev, secondsLeft }
       })
       // eslint-disable-next-line react-hooks/exhaustive-deps
