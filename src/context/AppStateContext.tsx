@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
+import type { Lang } from '@/i18n/translations'
 import type { ProfileAnswers } from '@/types'
 
 const DEFAULT_PROFILE: ProfileAnswers = {
@@ -6,8 +7,8 @@ const DEFAULT_PROFILE: ProfileAnswers = {
   gender: 'male',
   heightCm: 178,
   weightKg: 70,
-  goal: 'Подготовка к бою',
-  level: 'Продвинутый',
+  goal: 'fight',
+  level: 'advanced',
   workoutsPerWeek: '5-6',
 }
 
@@ -18,6 +19,17 @@ interface PersistedState {
   wheelSpinsLeft: number
   onboarded: boolean
   soundEnabled: boolean
+  language: Lang
+  goalWeightKg: number | null
+}
+
+const DEFAULT_STATE: PersistedState = {
+  profile: DEFAULT_PROFILE,
+  wheelSpinsLeft: 1,
+  onboarded: false,
+  soundEnabled: true,
+  language: 'ru',
+  goalWeightKg: null,
 }
 
 // Telegram's in-app browser can restrict storage access in rare/older
@@ -40,75 +52,42 @@ function writePersisted(state: PersistedState) {
   }
 }
 
-interface AppState {
-  profile: ProfileAnswers
+interface AppState extends PersistedState {
   setProfile: (profile: ProfileAnswers) => void
-  wheelSpinsLeft: number
   spendSpin: () => void
   addSpin: (count?: number) => void
-  onboarded: boolean
   completeOnboarding: () => void
-  soundEnabled: boolean
   setSoundEnabled: (enabled: boolean) => void
+  setLanguage: (lang: Lang) => void
+  setGoalWeightKg: (kg: number | null) => void
 }
 
 const AppStateContext = createContext<AppState | null>(null)
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [profile, setProfileState] = useState<ProfileAnswers>(() => ({
-    ...DEFAULT_PROFILE,
-    ...readPersisted().profile,
-  }))
-  const [wheelSpinsLeft, setWheelSpinsLeft] = useState(() => readPersisted().wheelSpinsLeft ?? 1)
-  const [onboarded, setOnboarded] = useState(() => readPersisted().onboarded ?? false)
-  const [soundEnabled, setSoundEnabledState] = useState(() => readPersisted().soundEnabled ?? true)
+  const [state, setState] = useState<PersistedState>(() => ({ ...DEFAULT_STATE, ...readPersisted() }))
 
-  const setProfile = (next: ProfileAnswers) => {
-    setProfileState(next)
-    writePersisted({ profile: next, wheelSpinsLeft, onboarded, soundEnabled })
-  }
-
-  const spendSpin = () =>
-    setWheelSpinsLeft((n) => {
-      const next = Math.max(0, n - 1)
-      writePersisted({ profile, wheelSpinsLeft: next, onboarded, soundEnabled })
+  const patch = (updater: Partial<PersistedState> | ((prev: PersistedState) => Partial<PersistedState>)) => {
+    setState((prev) => {
+      const partial = typeof updater === 'function' ? updater(prev) : updater
+      const next = { ...prev, ...partial }
+      writePersisted(next)
       return next
     })
-
-  const addSpin = (count = 1) =>
-    setWheelSpinsLeft((n) => {
-      const next = n + count
-      writePersisted({ profile, wheelSpinsLeft: next, onboarded, soundEnabled })
-      return next
-    })
-
-  const completeOnboarding = () => {
-    setOnboarded(true)
-    writePersisted({ profile, wheelSpinsLeft, onboarded: true, soundEnabled })
   }
 
-  const setSoundEnabled = (enabled: boolean) => {
-    setSoundEnabledState(enabled)
-    writePersisted({ profile, wheelSpinsLeft, onboarded, soundEnabled: enabled })
+  const value: AppState = {
+    ...state,
+    setProfile: (profile) => patch({ profile }),
+    spendSpin: () => patch((prev) => ({ wheelSpinsLeft: Math.max(0, prev.wheelSpinsLeft - 1) })),
+    addSpin: (count = 1) => patch((prev) => ({ wheelSpinsLeft: prev.wheelSpinsLeft + count })),
+    completeOnboarding: () => patch({ onboarded: true }),
+    setSoundEnabled: (soundEnabled) => patch({ soundEnabled }),
+    setLanguage: (language) => patch({ language }),
+    setGoalWeightKg: (goalWeightKg) => patch({ goalWeightKg }),
   }
 
-  return (
-    <AppStateContext.Provider
-      value={{
-        profile,
-        setProfile,
-        wheelSpinsLeft,
-        spendSpin,
-        addSpin,
-        onboarded,
-        completeOnboarding,
-        soundEnabled,
-        setSoundEnabled,
-      }}
-    >
-      {children}
-    </AppStateContext.Provider>
-  )
+  return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>
 }
 
 export function useAppState() {

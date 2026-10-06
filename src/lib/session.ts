@@ -12,4 +12,6 @@ export interface SessionNavState {
   restSec?: number
   /** Shown as each round's sub-label, cycling if there are fewer names than rounds. */
   exerciseNames?: string[]
+  /** Standalone timer started without a saved workout — skip workout-log history, show a generic title. */
+  isQuickTimer?: boolean
 }

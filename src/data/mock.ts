@@ -1,4 +1,4 @@
-import type { CalendarDay, ChatMessageData, MacroStat, Meal, ProgressStat, QuickAction, WeightPoint, WorkoutCategory } from '@/types'
+import type { CalendarDay, ChatMessageData, ProgressStat, WorkoutCategory } from '@/types'
 
 export const USER = {
   firstName: 'Marat',
@@ -16,29 +16,13 @@ export const WEEK_DAYS: CalendarDay[] = [
   { weekday: 'Вс', dayNumber: 28, isRest: true },
 ]
 
-export const TODAY_WORKOUT_LABEL = 'Сегодняшняя тренировка'
-
 export const STREAK_DAYS = 12
 
-export const WORKOUT_CATEGORIES: Array<'Все' | WorkoutCategory> = ['Все', 'Бойцовские', 'Силовые', 'Бег', 'Другое']
+export const WORKOUT_CATEGORIES: Array<'all' | WorkoutCategory> = ['all', 'fight', 'strength', 'run', 'other']
 
 // Тренировок/время/серия теперь считаются из реальной истории (src/lib/streak.ts,
 // ProgressPage) — здесь остаётся только то, для чего пока нет модели данных.
 export const PROGRESS_STATS: ProgressStat[] = [{ id: 'ps3', label: 'Личные рекорды', value: '12', icon: 'trophy' }]
-
-export const MACROS: MacroStat[] = [
-  { id: 'protein', label: 'Белки', value: 180, total: 200, unit: 'г', color: 'var(--color-success)' },
-  { id: 'carbs', label: 'Углеводы', value: 240, total: 300, unit: 'г', color: 'var(--color-accent)' },
-  { id: 'fats', label: 'Жиры', value: 70, total: 90, unit: 'г', color: 'var(--color-warning)' },
-]
-
-export const CALORIES = { current: 2350, total: 2400 }
-
-export const MEALS: Meal[] = [
-  { id: 'm1', name: 'Завтрак', title: 'Овсянка с бананом', time: '08:30', kcal: 660 },
-  { id: 'm2', name: 'Обед', title: 'Курица, рис, овощи', time: '13:15', kcal: 720 },
-  { id: 'm3', name: 'Ужин', title: 'Лосось, рис, овощи', time: '19:40', kcal: 680 },
-]
 
 export const AI_MESSAGES: ChatMessageData[] = [
   { id: 'ai1', from: 'user', text: 'Что мне сегодня тренировать?' },
@@ -49,26 +33,17 @@ export const AI_MESSAGES: ChatMessageData[] = [
   },
 ]
 
-export const AI_QUICK_ACTIONS: QuickAction[] = [
-  { id: 'qa1', label: 'Составь план на неделю' },
-  { id: 'qa2', label: 'Подсказки по питанию' },
-  { id: 'qa3', label: 'Анализ моего прогресса' },
-]
+/** Free sample workouts shown on Home — no purchase, no saved-workout record, just a short round-timer session. */
+export interface TrialWorkout {
+  id: string
+  title: string
+  rounds: number
+  roundSec: number
+  restSec: number
+}
 
-export const CREATE_WORKOUT_TYPES: Array<{ id: string; label: string }> = [
-  { id: 'fight', label: 'Бойцовская' },
-  { id: 'strength', label: 'Силовая' },
-  { id: 'run', label: 'Бег' },
-  { id: 'other', label: 'Другое' },
+export const TRIAL_WORKOUTS: TrialWorkout[] = [
+  { id: 'trial-1', title: 'Quick Boxing Basics', rounds: 3, roundSec: 120, restSec: 30 },
+  { id: 'trial-2', title: 'Muay Thai Starter', rounds: 4, roundSec: 150, restSec: 45 },
+  { id: 'trial-3', title: 'Core & Conditioning', rounds: 5, roundSec: 60, restSec: 20 },
 ]
-
-export const WEEKLY_CALORIES: WeightPoint[] = [
-  { date: 'Пн', value: 2180 },
-  { date: 'Вт', value: 2350 },
-  { date: 'Ср', value: 1990 },
-  { date: 'Чт', value: 2420 },
-  { date: 'Пт', value: 2300 },
-  { date: 'Сб', value: 2510 },
-  { date: 'Вс', value: 2350 },
-]
-

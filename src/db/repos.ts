@@ -2,6 +2,7 @@ import { createRepo } from './localStore'
 import {
   SEED_BONUS_LEDGER,
   SEED_COURSES,
+  SEED_MEALS,
   SEED_ORDERS,
   SEED_PROMO_CODES,
   SEED_WEIGHT,
@@ -12,6 +13,7 @@ import {
 import type {
   BonusLedgerEntry,
   Course,
+  Meal,
   OrderRecord,
   PromoCodeRecord,
   SavedWorkout,
@@ -25,6 +27,7 @@ export const promoCodesRepo = createRepo<PromoCodeRecord>('promo_codes', SEED_PR
 export const weightRepo = createRepo<WeightLogEntry>('weight_log', SEED_WEIGHT)
 export const workoutsRepo = createRepo<SavedWorkout>('workouts', SEED_WORKOUTS)
 export const workoutLogRepo = createRepo<WorkoutLogEntry>('workout_log', SEED_WORKOUT_LOG)
+export const mealsRepo = createRepo<Meal>('meals', SEED_MEALS)
 export const ordersRepo = createRepo<OrderRecord>('orders', SEED_ORDERS)
 export const bonusLedgerRepo = createRepo<BonusLedgerEntry>('bonus_ledger', SEED_BONUS_LEDGER)
 export const wheelSegmentsRepo = createRepo<WheelSegment>('wheel_segments', SEED_WHEEL_SEGMENTS)

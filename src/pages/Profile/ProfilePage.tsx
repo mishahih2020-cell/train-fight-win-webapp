@@ -13,39 +13,48 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { IconButton } from '@/components/ui/IconButton'
+import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
+import { Select, type SelectOption } from '@/components/ui/Select'
 import { Switch } from '@/components/ui/Switch'
 import { useAppState } from '@/context/AppStateContext'
+import { useT } from '@/i18n/useT'
 import { USER } from '@/data/mock'
 import { awardBonus, bonusLedgerRepo, ordersRepo, promoCodesRepo, weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { computeWorkoutStreak } from '@/lib/streak'
 import { summarizeWeight } from '@/lib/weight'
+import type { Lang } from '@/i18n/translations'
+import type { Goal } from '@/types'
 
-type ModalKind = 'orders' | 'promo' | 'subscription' | 'settings' | null
+type ModalKind = 'orders' | 'promo' | 'subscription' | 'settings' | 'goals' | null
 
-const ROUTES: Record<string, string> = { s1: '/profile-setup', s2: '/progress', s3: '/courses', s6: '/wheel' }
-const MODALS: Record<string, Exclude<ModalKind, null>> = { s4: 'orders', s5: 'promo', s7: 'subscription', s8: 'settings' }
+const ROUTES: Record<string, string> = { s1: '/profile-setup', s3: '/courses', s6: '/wheel' }
+const MODALS: Record<string, Exclude<ModalKind, null>> = { s2: 'goals', s4: 'orders', s5: 'promo', s7: 'subscription', s8: 'settings' }
+
+const GOAL_KEYS: Goal[] = ['fight', 'loseWeight', 'gainMass', 'generalFitness']
 
 const SETTINGS_ITEMS = [
-  { id: 's1', label: 'Мои данные', icon: User },
-  { id: 's2', label: 'Мои цели', icon: Target },
-  { id: 's3', label: 'Мои курсы', icon: GraduationCap },
-  { id: 's4', label: 'История заказов', icon: ShoppingBag },
-  { id: 's5', label: 'Промокоды', icon: Ticket },
-  { id: 's6', label: 'Бонусы', icon: Gift },
-  { id: 's7', label: 'Подписка', icon: Star, badge: 'PRO' },
-  { id: 's8', label: 'Настройки', icon: SettingsIcon },
+  { id: 's1', label: 'profile.item.myData' as const, icon: User },
+  { id: 's2', label: 'profile.item.myGoals' as const, icon: Target },
+  { id: 's3', label: 'profile.item.myCourses' as const, icon: GraduationCap },
+  { id: 's4', label: 'profile.item.orderHistory' as const, icon: ShoppingBag },
+  { id: 's5', label: 'profile.item.promoCodes' as const, icon: Ticket },
+  { id: 's6', label: 'profile.item.bonuses' as const, icon: Gift },
+  { id: 's7', label: 'profile.item.subscription' as const, icon: Star, badge: 'PRO' },
+  { id: 's8', label: 'profile.item.settings' as const, icon: SettingsIcon },
 ]
 
 export function ProfilePage() {
   const navigate = useNavigate()
-  const { soundEnabled, setSoundEnabled } = useAppState()
+  const { profile, setProfile, goalWeightKg, setGoalWeightKg, soundEnabled, setSoundEnabled, language, setLanguage } = useAppState()
+  const { t } = useT()
   const [modal, setModal] = useState<ModalKind>(null)
   const [promoCode, setPromoCode] = useState('')
   const [promoResult, setPromoResult] = useState<'ok' | 'error' | 'used' | null>(null)
   const [pushEnabled, setPushEnabled] = useState(true)
+  const [goalForm, setGoalForm] = useState({ goal: profile.goal, targetWeight: goalWeightKg != null ? String(goalWeightKg) : '' })
 
   const { items: orders } = useRepoList(ordersRepo)
   const { items: weightEntries } = useRepoList(weightRepo)
@@ -55,17 +64,26 @@ export function ProfilePage() {
   const bonusBalance = useMemo(() => bonusLedger.reduce((sum, e) => sum + e.amount, 0), [bonusLedger])
   const currentWeight = useMemo(() => summarizeWeight(weightEntries).current, [weightEntries])
   const streak = useMemo(() => computeWorkoutStreak(workoutLog.map((w) => w.date)), [workoutLog])
+  const goalOptions: SelectOption[] = GOAL_KEYS.map((key) => ({ value: key, label: t(`goal.${key}`) }))
   const profileStats = [
-    { id: 'streak', label: 'Серия', value: `${streak}` },
-    { id: 'workouts', label: 'Тренировок', value: `${workoutLog.length}` },
-    { id: 'weight', label: 'Вес', value: currentWeight ? `${currentWeight.toFixed(0)} кг` : '—' },
+    { id: 'streak', label: t('profile.streak'), value: `${streak}` },
+    { id: 'workouts', label: t('profile.workouts'), value: `${workoutLog.length}` },
+    { id: 'weight', label: t('profile.weight'), value: currentWeight ? `${currentWeight.toFixed(0)} кг` : '—' },
   ]
 
   const openItem = (id: string) => {
     const to = ROUTES[id]
     if (to) return navigate(to)
     const kind = MODALS[id]
+    if (kind === 'goals') setGoalForm({ goal: profile.goal, targetWeight: goalWeightKg != null ? String(goalWeightKg) : '' })
     if (kind) setModal(kind)
+  }
+
+  const saveGoals = () => {
+    setProfile({ ...profile, goal: goalForm.goal })
+    const parsed = Number(goalForm.targetWeight.replace(',', '.'))
+    setGoalWeightKg(goalForm.targetWeight && parsed > 0 ? parsed : null)
+    setModal(null)
   }
 
   const applyPromo = async () => {
@@ -88,8 +106,8 @@ export function ProfilePage() {
   return (
     <div className="safe-top px-4 pt-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-h1 text-[var(--color-text)]">Профиль</h1>
-        <IconButton variant="card" aria-label="Настройки" onClick={() => setModal('settings')}>
+        <h1 className="text-h1 text-[var(--color-text)]">{t('profile.title')}</h1>
+        <IconButton variant="card" aria-label={t('profile.settings')} onClick={() => setModal('settings')}>
           <SettingsIcon className="h-5 w-5" />
         </IconButton>
       </div>
@@ -129,7 +147,7 @@ export function ProfilePage() {
               }`}
             >
               <Icon className="h-5 w-5 text-[var(--color-text-secondary)]" />
-              <span className="text-body flex-1 text-[var(--color-text)]">{item.label}</span>
+              <span className="text-body flex-1 text-[var(--color-text)]">{t(item.label)}</span>
               {badge && (
                 <span
                   className={`text-caption rounded-[var(--radius-pill)] px-2 py-0.5 font-semibold ${
@@ -147,8 +165,32 @@ export function ProfilePage() {
 
       <div className="h-4" />
 
+      <Modal open={modal === 'goals'} onClose={() => setModal(null)}>
+        <div className="text-h2 mb-1 text-[var(--color-text)]">{t('profile.goals.title')}</div>
+        <p className="text-body-secondary mb-4 text-[var(--color-text-secondary)]">{t('profile.goals.subtitle')}</p>
+        <div className="flex flex-col gap-4">
+          <Select
+            label={t('profileSetup.goal')}
+            options={goalOptions}
+            value={goalForm.goal}
+            onChange={(e) => setGoalForm((f) => ({ ...f, goal: e.target.value as Goal }))}
+          />
+          <Input
+            label={t('profile.goals.targetWeight')}
+            type="number"
+            inputMode="decimal"
+            suffix="кг"
+            value={goalForm.targetWeight}
+            onChange={(e) => setGoalForm((f) => ({ ...f, targetWeight: e.target.value }))}
+          />
+        </div>
+        <Button variant="primary" className="mt-5" onClick={saveGoals}>
+          {t('profile.goals.save')}
+        </Button>
+      </Modal>
+
       <Modal open={modal === 'orders'} onClose={() => setModal(null)}>
-        <div className="text-h2 mb-4 text-[var(--color-text)]">История заказов</div>
+        <div className="text-h2 mb-4 text-[var(--color-text)]">{t('profile.orders.title')}</div>
         <div className="flex flex-col gap-2.5">
           {orders.length > 0 ? (
             [...orders]
@@ -163,12 +205,12 @@ export function ProfilePage() {
                     <div className="text-caption mt-0.5 text-[var(--color-text-secondary)]">{o.date}</div>
                   </div>
                   <span className="text-body-secondary font-semibold text-[var(--color-text)]">
-                    {o.amount > 0 ? `${o.amount.toLocaleString('ru-RU')} ₽` : 'Бесплатно'}
+                    {o.amount > 0 ? `${o.amount.toLocaleString('ru-RU')} ₽` : t('common.free')}
                   </span>
                 </div>
               ))
           ) : (
-            <p className="text-body-secondary text-[var(--color-text-secondary)]">Заказов пока нет</p>
+            <p className="text-body-secondary text-[var(--color-text-secondary)]">{t('profile.orders.empty')}</p>
           )}
         </div>
       </Modal>
@@ -181,8 +223,8 @@ export function ProfilePage() {
           setPromoCode('')
         }}
       >
-        <div className="text-h2 mb-1 text-[var(--color-text)]">Промокод</div>
-        <p className="text-body-secondary mb-4 text-[var(--color-text-secondary)]">Введите код и получите бонусные баллы</p>
+        <div className="text-h2 mb-1 text-[var(--color-text)]">{t('profile.promo.title')}</div>
+        <p className="text-body-secondary mb-4 text-[var(--color-text-secondary)]">{t('profile.promo.subtitle')}</p>
         <div className="flex h-12 items-center rounded-[var(--radius-button)] border border-[var(--color-divider)] bg-[var(--color-card-2)] px-4">
           <input
             value={promoCode}
@@ -194,53 +236,63 @@ export function ProfilePage() {
             className="text-body h-full w-full bg-transparent text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-tertiary)]"
           />
         </div>
-        {promoResult === 'ok' && (
-          <p className="text-caption mt-2 font-medium text-[var(--color-success)]">Промокод применён — бонус зачислен!</p>
-        )}
-        {promoResult === 'error' && (
-          <p className="text-caption mt-2 font-medium text-[var(--color-accent)]">Промокод не найден или недействителен</p>
-        )}
-        {promoResult === 'used' && (
-          <p className="text-caption mt-2 font-medium text-[var(--color-warning)]">Этот промокод уже был применён раньше</p>
-        )}
+        {promoResult === 'ok' && <p className="text-caption mt-2 font-medium text-[var(--color-success)]">{t('profile.promo.ok')}</p>}
+        {promoResult === 'error' && <p className="text-caption mt-2 font-medium text-[var(--color-accent)]">{t('profile.promo.error')}</p>}
+        {promoResult === 'used' && <p className="text-caption mt-2 font-medium text-[var(--color-warning)]">{t('profile.promo.used')}</p>}
         <Button variant="primary" className="mt-5" disabled={!promoCode.trim()} onClick={applyPromo}>
-          Применить
+          {t('profile.promo.apply')}
         </Button>
       </Modal>
 
       <Modal open={modal === 'subscription'} onClose={() => setModal(null)}>
         <div className="flex items-center gap-2">
-          <div className="text-h2 text-[var(--color-text)]">Подписка</div>
+          <div className="text-h2 text-[var(--color-text)]">{t('profile.subscription.title')}</div>
           <span className="text-caption rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-2 py-0.5 font-bold text-white">PRO</span>
         </div>
         <ul className="text-body-secondary mt-4 flex flex-col gap-2 text-[var(--color-text-secondary)]">
-          <li>• Безлимитный доступ ко всем курсам</li>
-          <li>• Персональные планы от AI Coach</li>
-          <li>• Приоритетная поддержка</li>
-          <li>• Бонусные попытки колеса фортуны</li>
+          <li>• {t('profile.subscription.perk1')}</li>
+          <li>• {t('profile.subscription.perk2')}</li>
+          <li>• {t('profile.subscription.perk3')}</li>
+          <li>• {t('profile.subscription.perk4')}</li>
         </ul>
         <p className="text-caption mt-4 rounded-[var(--radius-button)] bg-[var(--color-card-2)] p-3 text-[var(--color-text-tertiary)]">
-          Продление подписки заработает после подключения платёжной системы на сервере.
+          {t('profile.subscription.note')}
         </p>
         <Button variant="primary" className="mt-5" onClick={() => setModal(null)}>
-          Понятно
+          {t('common.understood')}
         </Button>
       </Modal>
 
       <Modal open={modal === 'settings'} onClose={() => setModal(null)}>
-        <div className="text-h2 mb-4 text-[var(--color-text)]">Настройки</div>
+        <div className="text-h2 mb-4 text-[var(--color-text)]">{t('profile.settingsModal.title')}</div>
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <span className="text-body text-[var(--color-text)]">Push-уведомления</span>
+            <span className="text-body text-[var(--color-text)]">{t('profile.settingsModal.push')}</span>
             <Switch checked={pushEnabled} onChange={setPushEnabled} />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-body text-[var(--color-text)]">Звук в тренировке</span>
+            <span className="text-body text-[var(--color-text)]">{t('profile.settingsModal.sound')}</span>
             <Switch checked={soundEnabled} onChange={setSoundEnabled} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-body text-[var(--color-text)]">{t('profile.settingsModal.language')}</span>
+            <div className="flex rounded-full border border-[var(--color-divider)] bg-[var(--color-card-2)] p-1">
+              {(['ru', 'en'] as Lang[]).map((lng) => (
+                <button
+                  key={lng}
+                  onClick={() => setLanguage(lng)}
+                  className={`press rounded-full px-3 py-1 text-sm font-semibold uppercase transition-colors ${
+                    language === lng ? 'gradient-accent text-white' : 'text-[var(--color-text-secondary)]'
+                  }`}
+                >
+                  {lng}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         <Button variant="primary" className="mt-6" onClick={() => setModal(null)}>
-          Готово
+          {t('common.done')}
         </Button>
       </Modal>
     </div>

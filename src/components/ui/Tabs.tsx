@@ -4,9 +4,11 @@ interface TabsProps<T extends string> {
   options: T[]
   value: T
   onChange: (value: T) => void
+  /** Stable keys need a separate display label — defaults to showing the key itself. */
+  labelFor?: (opt: T) => string
 }
 
-export function Tabs<T extends string>({ options, value, onChange }: TabsProps<T>) {
+export function Tabs<T extends string>({ options, value, onChange, labelFor }: TabsProps<T>) {
   return (
     <div className="flex gap-2">
       {options.map((opt) => {
@@ -24,7 +26,7 @@ export function Tabs<T extends string>({ options, value, onChange }: TabsProps<T
                 : 'bg-[var(--color-card)] text-[var(--color-text-secondary)] border border-[var(--color-divider)]'
             }`}
           >
-            {opt}
+            {labelFor ? labelFor(opt) : opt}
           </button>
         )
       })}
@@ -32,7 +34,7 @@ export function Tabs<T extends string>({ options, value, onChange }: TabsProps<T
   )
 }
 
-export function Chips<T extends string>({ options, value, onChange }: TabsProps<T>) {
+export function Chips<T extends string>({ options, value, onChange, labelFor }: TabsProps<T>) {
   return (
     <div className="no-scrollbar flex gap-2 overflow-x-auto">
       {options.map((opt) => {
@@ -50,7 +52,7 @@ export function Chips<T extends string>({ options, value, onChange }: TabsProps<
                 : 'bg-[var(--color-card)] text-[var(--color-text-secondary)] border border-[var(--color-divider)]'
             }`}
           >
-            {opt}
+            {labelFor ? labelFor(opt) : opt}
           </button>
         )
       })}

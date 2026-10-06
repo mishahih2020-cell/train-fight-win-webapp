@@ -13,6 +13,7 @@ import { ProgressPage } from '@/pages/Progress/ProgressPage'
 import { NutritionPage } from '@/pages/Nutrition/NutritionPage'
 import { AICoachPage } from '@/pages/AICoach/AICoachPage'
 import { CoursesPage } from '@/pages/Courses/CoursesPage'
+import { CourseDetailPage } from '@/pages/Courses/CourseDetailPage'
 import { ProfilePage } from '@/pages/Profile/ProfilePage'
 import { WheelPage } from '@/pages/Wheel/WheelPage'
 
@@ -150,6 +151,7 @@ function AppRoutes() {
 
       <Route path="/workouts/new" element={<CreateWorkoutPage />} />
       <Route path="/workouts/session" element={<WorkoutSessionPage />} />
+      <Route path="/courses/:id" element={<CourseDetailPage />} />
       <Route path="/progress" element={<ProgressPage />} />
       <Route path="/wheel" element={<WheelPage />} />
 

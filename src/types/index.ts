@@ -1,13 +1,16 @@
 export type Gender = 'male' | 'female'
 
-export type FitnessLevel = 'Начинающий' | 'Средний' | 'Продвинутый'
+export type FitnessLevel = 'beginner' | 'intermediate' | 'advanced'
+
+export type Goal = 'fight' | 'loseWeight' | 'gainMass' | 'generalFitness'
 
 export interface ProfileAnswers {
   age: number
   gender: Gender
   heightCm: number
   weightKg: number
-  goal: string
+  /** Stable key (not a display string) — see src/i18n, translated via `goal.*` keys. */
+  goal: Goal
   level: FitnessLevel
   workoutsPerWeek: string
 }
@@ -30,7 +33,8 @@ export interface WeightPoint {
   value: number
 }
 
-export type WorkoutCategory = 'Бойцовские' | 'Силовые' | 'Бег' | 'Другое'
+/** Stable key (not a display string) — translated via `workouts.category.*` keys. */
+export type WorkoutCategory = 'fight' | 'strength' | 'run' | 'other'
 
 /** A saved, reusable workout — created via "Создать тренировку" and started from the list. */
 export interface SavedWorkout {
@@ -44,7 +48,8 @@ export interface SavedWorkout {
   createdDate: string // yyyy-mm-dd
 }
 
-export type ProgressTab = 'Вес' | 'Тренировки' | 'Статистика'
+/** Stable key (not a display string) — translated via `progress.tab.*` keys. */
+export type ProgressTab = 'weight' | 'workouts' | 'stats'
 
 export interface ProgressStat {
   id: string
@@ -55,6 +60,7 @@ export interface ProgressStat {
 
 export interface Meal {
   id: string
+  date: string // yyyy-mm-dd
   name: string
   title: string
   time: string
@@ -80,8 +86,6 @@ export interface QuickAction {
   id: string
   label: string
 }
-
-export type CreateWorkoutType = 'Бойцовская' | 'Силовая' | 'Бег' | 'Другое'
 
 /** Editable via the admin panel; `purchased`/`progress` are per-device until there's a server. */
 export interface Course {

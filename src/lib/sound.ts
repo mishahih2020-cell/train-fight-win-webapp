@@ -45,9 +45,11 @@ function beep(freq: number, durationSec: number, delaySec = 0, volume = 0.25, ty
   }
 }
 
-/** Two close, detuned oscillators beating against each other — the harsh
- * "electronic buzzer" timbre of a real boxing round-end horn, not a clean tone. */
-function buzz(durationSec: number, volume = 0.3) {
+/** Two close, slightly detuned oscillators beating against each other — the
+ * "electronic buzzer" character of a boxing round-end horn, softened with a
+ * triangle wave (fewer harsh harmonics than a sawtooth) and a lowpass filter
+ * so it reads as a horn rather than a siren. */
+function buzz(durationSec: number, volume = 0.22) {
   try {
     const ctx = getCtx()
     if (!ctx) return
@@ -56,13 +58,19 @@ function buzz(durationSec: number, volume = 0.3) {
     gain.gain.setValueAtTime(volume, start)
     gain.gain.setValueAtTime(volume, start + Math.max(0, durationSec - 0.06))
     gain.gain.exponentialRampToValueAtTime(0.001, start + durationSec)
+
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'lowpass'
+    filter.frequency.value = 900
+    filter.Q.value = 0.7
+    filter.connect(gain)
     gain.connect(ctx.destination)
 
     for (const freq of [196, 202]) {
       const osc = ctx.createOscillator()
-      osc.type = 'sawtooth'
+      osc.type = 'triangle'
       osc.frequency.value = freq
-      osc.connect(gain)
+      osc.connect(filter)
       osc.start(start)
       osc.stop(start + durationSec + 0.02)
     }
@@ -78,7 +86,7 @@ export function playRoundStart() {
 
 /** Round ends — the boxing-bell buzzer. */
 export function playRoundEnd() {
-  buzz(1.1, 0.3)
+  buzz(1.1, 0.22)
 }
 
 /** ~10 seconds left in the round — two short blips, the classic boxing-timer warning. */
@@ -87,9 +95,9 @@ export function playWarning() {
   beep(660, 0.12, 0.22)
 }
 
-/** Last 3 seconds of prep/rest before a round starts — one tick per second. */
+/** Last 3 seconds of prep/rest before a round starts — one soft tick per second. */
 export function playCountdownTick() {
-  beep(1046, 0.09, 0, 0.22, 'square')
+  beep(880, 0.08, 0, 0.16, 'sine')
 }
 
 /** Workout finished — a short triumphant three-note run. */

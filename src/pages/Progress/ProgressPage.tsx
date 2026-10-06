@@ -12,10 +12,10 @@ import { Select } from '@/components/ui/Select'
 import { Tabs } from '@/components/ui/Tabs'
 import { WorkoutCard } from '@/components/cards/WorkoutCard'
 import { useAppState } from '@/context/AppStateContext'
+import { useT } from '@/i18n/useT'
 import { PROGRESS_STATS } from '@/data/mock'
 import { weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
-import { pluralizeRu } from '@/lib/pluralize'
 import { computeWorkoutStreak } from '@/lib/streak'
 import { primeAudio } from '@/lib/sound'
 import { formatRelativeDate, summarizeWeight } from '@/lib/weight'
@@ -23,18 +23,20 @@ import { formatClock } from '@/hooks/useCountdown'
 import type { ProgressTab } from '@/types'
 
 const ICONS = { chart: BarChart3, clock: Clock, trophy: Trophy, flame: Flame }
-const GOAL_WEIGHT = 67.0
+const PERIODS = ['week', 'month', 'quarter', 'year'] as const
 
 export function ProgressPage() {
   const navigate = useNavigate()
-  const { profile } = useAppState()
-  const [tab, setTab] = useState<ProgressTab>('Вес')
+  const { profile, goalWeightKg, language } = useAppState()
+  const { t, tn } = useT()
+  const [tab, setTab] = useState<ProgressTab>('weight')
+  const [period, setPeriod] = useState<(typeof PERIODS)[number]>('month')
   const { items: weightEntries, reload: reloadWeight } = useRepoList(weightRepo)
   const { items: workoutLog } = useRepoList(workoutLogRepo)
   const [addWeightOpen, setAddWeightOpen] = useState(false)
   const [newWeight, setNewWeight] = useState('')
 
-  const weight = useMemo(() => summarizeWeight(weightEntries, profile.goal), [weightEntries, profile.goal])
+  const weight = useMemo(() => summarizeWeight(weightEntries, profile.goal, language), [weightEntries, profile.goal, language])
 
   const loggedWorkouts = useMemo(
     () => [...workoutLog].sort((a, b) => b.date.localeCompare(a.date)),
@@ -59,29 +61,34 @@ export function ProgressPage() {
 
   return (
     <div className="pb-8">
-      <Header title="Прогресс" />
+      <Header title={t('progress.title')} />
 
       <div className="mt-4 px-4">
-        <Tabs options={['Вес', 'Тренировки', 'Статистика']} value={tab} onChange={setTab} />
+        <Tabs options={['weight', 'workouts', 'stats']} value={tab} onChange={setTab} labelFor={(k) => t(`progress.tab.${k}`)} />
       </div>
 
       <div className="mt-5 px-4">
-        {tab === 'Вес' && (
+        {tab === 'weight' && (
           <>
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-caption text-[var(--color-text-secondary)]">Текущий вес</div>
+                <div className="text-caption text-[var(--color-text-secondary)]">{t('progress.currentWeight')}</div>
                 <div className="text-h1 mt-1 text-[var(--color-text)]">{weight.current.toFixed(1)} кг</div>
                 <div className="text-caption mt-0.5 font-medium" style={{ color: weight.deltaColor }}>
                   {weight.deltaLabel}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <IconButton variant="card" onClick={() => setAddWeightOpen(true)} aria-label="Добавить вес">
+                <IconButton variant="card" onClick={() => setAddWeightOpen(true)} aria-label={t('progress.addWeight')}>
                   <Plus className="h-4 w-4" />
                 </IconButton>
                 <div className="w-28">
-                  <Select label="" options={['1 неделя', '1 месяц', '3 месяца', 'Год']} defaultValue="1 месяц" />
+                  <Select
+                    label=""
+                    options={PERIODS.map((p) => ({ value: p, label: t(`progress.period.${p}`) }))}
+                    value={period}
+                    onChange={(e) => setPeriod(e.target.value as (typeof PERIODS)[number])}
+                  />
                 </div>
               </div>
             </div>
@@ -90,36 +97,37 @@ export function ProgressPage() {
               {weight.points.length > 1 ? (
                 <LineChart points={weight.points} />
               ) : (
-                <p className="text-body-secondary py-6 text-center text-[var(--color-text-secondary)]">
-                  Добавьте ещё одно измерение веса, чтобы увидеть график
-                </p>
+                <p className="text-body-secondary py-6 text-center text-[var(--color-text-secondary)]">{t('progress.needMorePoints')}</p>
               )}
             </Card>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
               <Card>
-                <div className="text-caption text-[var(--color-text-secondary)]">Цель</div>
-                <div className="text-h2 mt-1 text-[var(--color-text)]">{GOAL_WEIGHT.toFixed(1)} кг</div>
+                <div className="text-caption text-[var(--color-text-secondary)]">{t('progress.goal')}</div>
+                <div className="text-h2 mt-1 text-[var(--color-text)]">
+                  {goalWeightKg != null ? `${goalWeightKg.toFixed(1)} кг` : t('progress.noGoalSet')}
+                </div>
+                {goalWeightKg == null && <div className="text-caption mt-0.5 text-[var(--color-text-tertiary)]">{t('progress.setGoalHint')}</div>}
               </Card>
               <Card>
-                <div className="text-caption text-[var(--color-text-secondary)]">Осталось</div>
+                <div className="text-caption text-[var(--color-text-secondary)]">{t('progress.remaining')}</div>
                 <div className="text-h2 mt-1 text-[var(--color-accent)]">
-                  {Math.max(0, weight.current - GOAL_WEIGHT).toFixed(1)} кг
+                  {goalWeightKg != null ? `${Math.abs(weight.current - goalWeightKg).toFixed(1)} кг` : '—'}
                 </div>
               </Card>
             </div>
           </>
         )}
 
-        {tab === 'Тренировки' && (
+        {tab === 'workouts' && (
           <div className="flex flex-col gap-3">
             {loggedWorkouts.length > 0 ? (
               loggedWorkouts.map((w) => (
                 <WorkoutCard
                   key={w.id}
                   title={w.title}
-                  meta={`${formatClock(w.durationSec)} · ${w.exerciseCount} ${pluralizeRu(w.exerciseCount, 'раунд', 'раунда', 'раундов')}`}
-                  dateLabel={formatRelativeDate(w.date)}
+                  meta={`${formatClock(w.durationSec)} · ${tn('workouts.rounds', w.exerciseCount)}`}
+                  dateLabel={formatRelativeDate(w.date, language)}
                   onClick={() => {
                     primeAudio()
                     navigate('/workouts/session', { state: { workoutName: w.title, category: w.category } })
@@ -128,36 +136,34 @@ export function ProgressPage() {
               ))
             ) : (
               <div className="text-body-secondary rounded-[var(--radius-card)] border border-dashed border-[var(--color-divider)] p-6 text-center text-[var(--color-text-secondary)]">
-                Завершённые тренировки появятся здесь
+                {t('progress.noWorkoutsHistory')}
               </div>
             )}
           </div>
         )}
 
-        {tab === 'Статистика' && (
+        {tab === 'stats' && (
           <div className="grid grid-cols-2 gap-3">
             <Card>
               <div className="flex items-center justify-between">
-                <span className="text-caption text-[var(--color-text-secondary)]">Тренировок всего</span>
+                <span className="text-caption text-[var(--color-text-secondary)]">{t('progress.totalWorkouts')}</span>
                 <BarChart3 className="h-4 w-4 text-[var(--color-accent)]" />
               </div>
               <div className="text-h2 mt-2 text-[var(--color-text)]">{workoutLog.length}</div>
             </Card>
             <Card>
               <div className="flex items-center justify-between">
-                <span className="text-caption text-[var(--color-text-secondary)]">Время всего</span>
+                <span className="text-caption text-[var(--color-text-secondary)]">{t('progress.totalTime')}</span>
                 <Clock className="h-4 w-4 text-[var(--color-accent)]" />
               </div>
               <div className="text-h2 mt-2 text-[var(--color-text)]">{monthDurationHours} ч</div>
             </Card>
             <Card>
               <div className="flex items-center justify-between">
-                <span className="text-caption text-[var(--color-text-secondary)]">Серия</span>
+                <span className="text-caption text-[var(--color-text-secondary)]">{t('progress.streak')}</span>
                 <Flame className="h-4 w-4 text-[var(--color-accent)]" />
               </div>
-              <div className="text-h2 mt-2 text-[var(--color-text)]">
-                {streak} {pluralizeRu(streak, 'день', 'дня', 'дней')}
-              </div>
+              <div className="text-h2 mt-2 text-[var(--color-text)]">{tn('home.streakDays', streak)}</div>
             </Card>
             {PROGRESS_STATS.filter((s) => s.icon === 'trophy').map((stat) => {
               const Icon = ICONS[stat.icon]
@@ -176,9 +182,9 @@ export function ProgressPage() {
       </div>
 
       <Modal open={addWeightOpen} onClose={() => setAddWeightOpen(false)}>
-        <div className="text-h2 mb-4 text-[var(--color-text)]">Новое измерение</div>
+        <div className="text-h2 mb-4 text-[var(--color-text)]">{t('progress.addWeightTitle')}</div>
         <Input
-          label="Вес сегодня"
+          label={t('progress.weightToday')}
           type="number"
           inputMode="decimal"
           suffix="кг"
@@ -187,7 +193,7 @@ export function ProgressPage() {
           autoFocus
         />
         <Button variant="primary" className="mt-5" disabled={!newWeight} onClick={saveWeight}>
-          Сохранить
+          {t('common.save')}
         </Button>
       </Modal>
     </div>

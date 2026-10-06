@@ -1,21 +1,18 @@
 import type { Course } from '@/types'
-import { Button } from '@/components/ui/Button'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { ProgressBar } from '@/components/ui/ProgressBar'
+import { useT } from '@/i18n/useT'
 
-function ctaLabel(course: Course) {
-  if (!course.purchased) return course.price > 0 ? `Купить за ${course.price.toLocaleString('ru-RU')} ₽` : 'Забрать бесплатно'
-  if ((course.progress ?? 0) >= 100) return 'Пройден'
-  if ((course.progress ?? 0) > 0) return 'Продолжить'
-  return 'Начать'
-}
-
-export function CourseCard({ course, onCta }: { course: Course; onCta?: () => void }) {
+export function CourseCard({ course, onClick }: { course: Course; onClick?: () => void }) {
+  const { t } = useT()
   return (
-    <div className="card-shadow relative overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-divider)]">
+    <button
+      onClick={onClick}
+      className="card-shadow press relative block w-full overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-divider)] text-left"
+    >
       <PlaceholderImage className="h-44 w-full" rounded="rounded-none" darken />
       <span className="text-caption absolute top-3 right-3 rounded-[var(--radius-pill)] bg-black/60 px-2.5 py-1 font-semibold text-white backdrop-blur">
-        {course.purchased ? 'Куплено' : course.price > 0 ? `${course.price.toLocaleString('ru-RU')} ₽` : 'Бесплатно'}
+        {course.purchased ? t('courses.purchased') : course.price > 0 ? `${course.price.toLocaleString('ru-RU')} ₽` : t('common.free')}
       </span>
       <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-4">
         <div>
@@ -28,10 +25,7 @@ export function CourseCard({ course, onCta }: { course: Course; onCta?: () => vo
             <span className="text-caption font-semibold text-[var(--color-accent)]">{course.progress}%</span>
           </div>
         )}
-        <Button variant="primary" fullWidth={false} className="self-start px-6" onClick={onCta}>
-          {ctaLabel(course)}
-        </Button>
       </div>
-    </div>
+    </button>
   )
 }
