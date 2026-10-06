@@ -14,15 +14,26 @@ import { primeAudio } from '@/lib/sound'
 export function CourseDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { addSpin } = useAppState()
+  const { addSpin, language } = useAppState()
   const { t } = useT()
-  const { items: courses, reload } = useRepoList(coursesRepo)
+  const { items: courses, loaded, reload } = useRepoList(coursesRepo)
   const course = courses.find((c) => c.id === id)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [justBought, setJustBought] = useState(false)
 
   if (!course) {
-    return <Header title={t('courses.title')} />
+    if (!loaded) return null
+    return (
+      <div className="pb-8">
+        <Header title={t('courses.title')} />
+        <div className="mt-8 px-4 text-center">
+          <p className="text-body-secondary text-[var(--color-text-secondary)]">{t('courses.notFound')}</p>
+          <Button variant="secondary" className="mt-5" onClick={() => navigate('/courses')}>
+            {t('common.back')}
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   const confirmPurchase = async () => {
@@ -91,7 +102,7 @@ export function CourseDetailPage() {
       {!course.purchased && (
         <div className="safe-bottom fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] border-t border-[var(--color-divider)] bg-[var(--color-bg)] p-4">
           <Button variant="primary" onClick={() => setConfirmOpen(true)}>
-            {course.price > 0 ? t('courses.buyFor', { price: course.price.toLocaleString('ru-RU') }) : t('courses.getFree')}
+            {course.price > 0 ? t('courses.buyFor', { price: course.price.toLocaleString(language === 'en' ? 'en-US' : 'ru-RU') }) : t('courses.getFree')}
           </Button>
         </div>
       )}
@@ -103,7 +114,7 @@ export function CourseDetailPage() {
           {t('courses.testPurchaseNote')}
         </p>
         <Button variant="primary" className="mt-5" onClick={confirmPurchase}>
-          {course.price > 0 ? t('courses.buyFor', { price: course.price.toLocaleString('ru-RU') }) : t('courses.getFree')}
+          {course.price > 0 ? t('courses.buyFor', { price: course.price.toLocaleString(language === 'en' ? 'en-US' : 'ru-RU') }) : t('courses.getFree')}
         </Button>
       </Modal>
 

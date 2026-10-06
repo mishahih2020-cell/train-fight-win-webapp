@@ -1,10 +1,13 @@
 import type { Course } from '@/types'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { ProgressBar } from '@/components/ui/ProgressBar'
+import { useAppState } from '@/context/AppStateContext'
 import { useT } from '@/i18n/useT'
+import { formatRub } from '@/lib/format'
 
 export function CourseCard({ course, onClick }: { course: Course; onClick?: () => void }) {
   const { t } = useT()
+  const { language } = useAppState()
   return (
     <button
       onClick={onClick}
@@ -12,7 +15,7 @@ export function CourseCard({ course, onClick }: { course: Course; onClick?: () =
     >
       <PlaceholderImage className="h-44 w-full" rounded="rounded-none" darken />
       <span className="text-caption absolute top-3 right-3 rounded-[var(--radius-pill)] bg-black/60 px-2.5 py-1 font-semibold text-white backdrop-blur">
-        {course.purchased ? t('courses.purchased') : course.price > 0 ? `${course.price.toLocaleString('ru-RU')} ₽` : t('common.free')}
+        {course.purchased ? t('courses.purchased') : course.price > 0 ? formatRub(course.price, language) : t('common.free')}
       </span>
       <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-4">
         <div>

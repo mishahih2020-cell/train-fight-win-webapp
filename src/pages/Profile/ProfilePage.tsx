@@ -23,8 +23,9 @@ import { useT } from '@/i18n/useT'
 import { USER } from '@/data/mock'
 import { awardBonus, bonusLedgerRepo, ordersRepo, promoCodesRepo, weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
+import { formatRub } from '@/lib/format'
 import { computeWorkoutStreak } from '@/lib/streak'
-import { summarizeWeight } from '@/lib/weight'
+import { formatShortDate, summarizeWeight } from '@/lib/weight'
 import type { Lang } from '@/i18n/translations'
 import type { Goal } from '@/types'
 
@@ -48,7 +49,8 @@ const SETTINGS_ITEMS = [
 
 export function ProfilePage() {
   const navigate = useNavigate()
-  const { profile, setProfile, goalWeightKg, setGoalWeightKg, soundEnabled, setSoundEnabled, language, setLanguage } = useAppState()
+  const { profile, setProfile, goalWeightKg, setGoalWeightKg, soundEnabled, setSoundEnabled, language, setLanguage, isPro, setIsPro } =
+    useAppState()
   const { t } = useT()
   const [modal, setModal] = useState<ModalKind>(null)
   const [promoCode, setPromoCode] = useState('')
@@ -68,7 +70,7 @@ export function ProfilePage() {
   const profileStats = [
     { id: 'streak', label: t('profile.streak'), value: `${streak}` },
     { id: 'workouts', label: t('profile.workouts'), value: `${workoutLog.length}` },
-    { id: 'weight', label: t('profile.weight'), value: currentWeight ? `${currentWeight.toFixed(0)} кг` : '—' },
+    { id: 'weight', label: t('profile.weight'), value: currentWeight ? `${currentWeight.toFixed(0)} ${t('common.kg')}` : '—' },
   ]
 
   const openItem = (id: string) => {
@@ -116,7 +118,7 @@ export function ProfilePage() {
         <PlaceholderImage className="h-24 w-24" rounded="rounded-full" />
         <div className="mt-3 flex items-center gap-2">
           <span className="text-h2 text-[var(--color-text)]">{USER.firstName}</span>
-          {USER.isPro && (
+          {isPro && (
             <span className="text-caption rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-2 py-0.5 font-bold text-white">
               PRO
             </span>
@@ -179,7 +181,7 @@ export function ProfilePage() {
             label={t('profile.goals.targetWeight')}
             type="number"
             inputMode="decimal"
-            suffix="кг"
+            suffix={t('common.kg')}
             value={goalForm.targetWeight}
             onChange={(e) => setGoalForm((f) => ({ ...f, targetWeight: e.target.value }))}
           />
@@ -202,10 +204,10 @@ export function ProfilePage() {
                 >
                   <div>
                     <div className="text-body-secondary font-semibold text-[var(--color-text)]">{o.courseTitle}</div>
-                    <div className="text-caption mt-0.5 text-[var(--color-text-secondary)]">{o.date}</div>
+                    <div className="text-caption mt-0.5 text-[var(--color-text-secondary)]">{formatShortDate(o.date, language)}</div>
                   </div>
                   <span className="text-body-secondary font-semibold text-[var(--color-text)]">
-                    {o.amount > 0 ? `${o.amount.toLocaleString('ru-RU')} ₽` : t('common.free')}
+                    {o.amount > 0 ? formatRub(o.amount, language) : t('common.free')}
                   </span>
                 </div>
               ))
@@ -255,12 +257,23 @@ export function ProfilePage() {
           <li>• {t('profile.subscription.perk3')}</li>
           <li>• {t('profile.subscription.perk4')}</li>
         </ul>
-        <p className="text-caption mt-4 rounded-[var(--radius-button)] bg-[var(--color-card-2)] p-3 text-[var(--color-text-tertiary)]">
-          {t('profile.subscription.note')}
-        </p>
-        <Button variant="primary" className="mt-5" onClick={() => setModal(null)}>
-          {t('common.understood')}
-        </Button>
+        {isPro ? (
+          <>
+            <p className="text-caption mt-4 font-medium text-[var(--color-success)]">{t('profile.subscription.active')}</p>
+            <Button variant="ghost" className="mt-5" onClick={() => setIsPro(false)}>
+              {t('profile.subscription.cancel')}
+            </Button>
+          </>
+        ) : (
+          <>
+            <p className="text-caption mt-4 rounded-[var(--radius-button)] bg-[var(--color-card-2)] p-3 text-[var(--color-text-tertiary)]">
+              {t('profile.subscription.testNote')}
+            </p>
+            <Button variant="primary" className="mt-5" onClick={() => setIsPro(true)}>
+              {t('profile.subscription.subscribe')}
+            </Button>
+          </>
+        )}
       </Modal>
 
       <Modal open={modal === 'settings'} onClose={() => setModal(null)}>

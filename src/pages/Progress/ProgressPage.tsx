@@ -18,12 +18,13 @@ import { weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { computeWorkoutStreak } from '@/lib/streak'
 import { primeAudio } from '@/lib/sound'
-import { formatRelativeDate, summarizeWeight } from '@/lib/weight'
+import { formatRelativeDate, formatShortDate, summarizeWeight } from '@/lib/weight'
 import { formatClock } from '@/hooks/useCountdown'
 import type { ProgressTab } from '@/types'
 
 const ICONS = { chart: BarChart3, clock: Clock, trophy: Trophy, flame: Flame }
 const PERIODS = ['week', 'month', 'quarter', 'year'] as const
+const PERIOD_DAYS: Record<(typeof PERIODS)[number], number> = { week: 7, month: 30, quarter: 90, year: 365 }
 
 export function ProgressPage() {
   const navigate = useNavigate()
@@ -37,6 +38,18 @@ export function ProgressPage() {
   const [newWeight, setNewWeight] = useState('')
 
   const weight = useMemo(() => summarizeWeight(weightEntries, profile.goal, language), [weightEntries, profile.goal, language])
+
+  // The period selector only scopes the chart — "current weight"/delta
+  // above it always reflect the latest real entries regardless of period.
+  const chartPoints = useMemo(() => {
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - PERIOD_DAYS[period])
+    const cutoffIso = cutoff.toISOString().slice(0, 10)
+    return [...weightEntries]
+      .filter((e) => e.date >= cutoffIso)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((e) => ({ date: formatShortDate(e.date, language), value: e.value }))
+  }, [weightEntries, period, language])
 
   const loggedWorkouts = useMemo(
     () => [...workoutLog].sort((a, b) => b.date.localeCompare(a.date)),
@@ -73,7 +86,7 @@ export function ProgressPage() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-caption text-[var(--color-text-secondary)]">{t('progress.currentWeight')}</div>
-                <div className="text-h1 mt-1 text-[var(--color-text)]">{weight.current.toFixed(1)} кг</div>
+                <div className="text-h1 mt-1 text-[var(--color-text)]">{weight.current.toFixed(1)} {t('common.kg')}</div>
                 <div className="text-caption mt-0.5 font-medium" style={{ color: weight.deltaColor }}>
                   {weight.deltaLabel}
                 </div>
@@ -94,8 +107,8 @@ export function ProgressPage() {
             </div>
 
             <Card className="mt-4 p-4">
-              {weight.points.length > 1 ? (
-                <LineChart points={weight.points} />
+              {chartPoints.length > 1 ? (
+                <LineChart points={chartPoints} />
               ) : (
                 <p className="text-body-secondary py-6 text-center text-[var(--color-text-secondary)]">{t('progress.needMorePoints')}</p>
               )}
@@ -105,14 +118,14 @@ export function ProgressPage() {
               <Card>
                 <div className="text-caption text-[var(--color-text-secondary)]">{t('progress.goal')}</div>
                 <div className="text-h2 mt-1 text-[var(--color-text)]">
-                  {goalWeightKg != null ? `${goalWeightKg.toFixed(1)} кг` : t('progress.noGoalSet')}
+                  {goalWeightKg != null ? `${goalWeightKg.toFixed(1)} ${t('common.kg')}` : t('progress.noGoalSet')}
                 </div>
                 {goalWeightKg == null && <div className="text-caption mt-0.5 text-[var(--color-text-tertiary)]">{t('progress.setGoalHint')}</div>}
               </Card>
               <Card>
                 <div className="text-caption text-[var(--color-text-secondary)]">{t('progress.remaining')}</div>
                 <div className="text-h2 mt-1 text-[var(--color-accent)]">
-                  {goalWeightKg != null ? `${Math.abs(weight.current - goalWeightKg).toFixed(1)} кг` : '—'}
+                  {goalWeightKg != null ? `${Math.abs(weight.current - goalWeightKg).toFixed(1)} ${t('common.kg')}` : '—'}
                 </div>
               </Card>
             </div>
@@ -156,7 +169,7 @@ export function ProgressPage() {
                 <span className="text-caption text-[var(--color-text-secondary)]">{t('progress.totalTime')}</span>
                 <Clock className="h-4 w-4 text-[var(--color-accent)]" />
               </div>
-              <div className="text-h2 mt-2 text-[var(--color-text)]">{monthDurationHours} ч</div>
+              <div className="text-h2 mt-2 text-[var(--color-text)]">{monthDurationHours} {t('common.hours')}</div>
             </Card>
             <Card>
               <div className="flex items-center justify-between">
@@ -187,7 +200,7 @@ export function ProgressPage() {
           label={t('progress.weightToday')}
           type="number"
           inputMode="decimal"
-          suffix="кг"
+          suffix={t('common.kg')}
           value={newWeight}
           onChange={(e) => setNewWeight(e.target.value)}
           autoFocus

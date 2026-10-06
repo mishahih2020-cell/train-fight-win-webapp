@@ -1,4 +1,5 @@
 import type { WeightPoint } from '@/types'
+import type { Lang } from '@/i18n/translations'
 import { calorieRingColor } from '@/lib/nutrition'
 
 function buildPath(points: WeightPoint[], width: number, height: number, padY = 6) {
@@ -75,7 +76,18 @@ export function Sparkline({ points, positive = true }: { points: WeightPoint[]; 
 }
 
 /** Circular calorie ring used on Nutrition. */
-export function CalorieRing({ current, total, size = 104 }: { current: number; total: number; size?: number }) {
+export function CalorieRing({
+  current,
+  total,
+  size = 104,
+  lang = 'ru',
+}: {
+  current: number
+  total: number
+  size?: number
+  lang?: Lang
+}) {
+  const locale = lang === 'en' ? 'en-US' : 'ru-RU'
   const stroke = 10
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
@@ -102,9 +114,9 @@ export function CalorieRing({ current, total, size = 104 }: { current: number; t
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-h2 leading-none text-[var(--color-text)]" style={{ color }}>
-          {current.toLocaleString('ru-RU')}
+          {current.toLocaleString(locale)}
         </span>
-        <span className="text-caption mt-1 text-[var(--color-text-secondary)]">/ {total.toLocaleString('ru-RU')}</span>
+        <span className="text-caption mt-1 text-[var(--color-text-secondary)]">/ {total.toLocaleString(locale)}</span>
       </div>
     </div>
   )

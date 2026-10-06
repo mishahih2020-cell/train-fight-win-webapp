@@ -22,6 +22,7 @@ export function ProfileSetupPage() {
   const levelOptions: SelectOption[] = LEVEL_KEYS.map((key) => ({ value: key, label: t(`level.${key}`) }))
 
   const setGender = (gender: Gender) => setForm((f) => ({ ...f, gender }))
+  const canSubmit = form.age > 0 && form.heightCm > 0 && form.weightKg > 0
 
   const submit = async () => {
     setProfile(form)
@@ -88,7 +89,7 @@ export function ProfileSetupPage() {
         <Input
           label={t('profileSetup.height')}
           type="number"
-          suffix="см"
+          suffix={t('common.cm')}
           min={100}
           max={250}
           value={form.heightCm || ''}
@@ -97,7 +98,7 @@ export function ProfileSetupPage() {
         <Input
           label={t('profileSetup.weight')}
           type="number"
-          suffix="кг"
+          suffix={t('common.kg')}
           min={20}
           max={300}
           value={form.weightKg || ''}
@@ -123,7 +124,7 @@ export function ProfileSetupPage() {
         />
       </div>
 
-      <Button variant="primary" size="large" className="mt-6" onClick={submit}>
+      <Button variant="primary" size="large" className="mt-6" disabled={!canSubmit} onClick={submit}>
         {t('profileSetup.continue')}
       </Button>
     </div>

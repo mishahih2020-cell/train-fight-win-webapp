@@ -1,19 +1,22 @@
-import type { CalendarDay, ChatMessageData, ProgressStat, WorkoutCategory } from '@/types'
+import type { ChatMessageData, ProgressStat, WorkoutCategory } from '@/types'
+import type { WeekPlanSlot } from '@/lib/calendar'
 
 export const USER = {
   firstName: 'Marat',
   username: '@maratfighter',
-  isPro: true,
 }
 
-export const WEEK_DAYS: CalendarDay[] = [
-  { weekday: 'Пн', dayNumber: 22, workoutTitle: 'Running' },
-  { weekday: 'Вт', dayNumber: 23, workoutTitle: 'Muay Thai + Strength' },
-  { weekday: 'Ср', dayNumber: 24, isRest: true },
-  { weekday: 'Чт', dayNumber: 25, workoutTitle: 'Strength' },
-  { weekday: 'Пт', dayNumber: 26, workoutTitle: 'Muay Thai' },
-  { weekday: 'Сб', dayNumber: 27, workoutTitle: 'Sparring' },
-  { weekday: 'Вс', dayNumber: 28, isRest: true },
+// Content for each weekday slot (Monday first) — real dates/weekday labels
+// are computed fresh for the current week in src/lib/calendar.ts, so this
+// plan never goes stale the way a hardcoded date range would.
+export const WEEK_PLAN: WeekPlanSlot[] = [
+  { workoutTitle: 'Running' },
+  { workoutTitle: 'Muay Thai + Strength' },
+  { isRest: true },
+  { workoutTitle: 'Strength' },
+  { workoutTitle: 'Muay Thai' },
+  { workoutTitle: 'Sparring' },
+  { isRest: true },
 ]
 
 export const STREAK_DAYS = 12

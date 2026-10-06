@@ -21,7 +21,7 @@ export function Header({ title, onBack, trailing, children }: HeaderProps) {
         <IconButton variant="card" onClick={onBack ?? (() => navigate(-1))} aria-label={t('common.back')}>
           <ChevronLeft className="h-5 w-5" />
         </IconButton>
-        <h1 className="text-h2 text-[var(--color-text)]">{title}</h1>
+        <h1 className="text-h2 min-w-0 flex-1 truncate px-2 text-center text-[var(--color-text)]">{title}</h1>
         {trailing ?? <div className="h-10 w-10" />}
       </div>
       {children}

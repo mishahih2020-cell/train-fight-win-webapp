@@ -21,6 +21,7 @@ interface PersistedState {
   soundEnabled: boolean
   language: Lang
   goalWeightKg: number | null
+  isPro: boolean
 }
 
 const DEFAULT_STATE: PersistedState = {
@@ -30,6 +31,7 @@ const DEFAULT_STATE: PersistedState = {
   soundEnabled: true,
   language: 'ru',
   goalWeightKg: null,
+  isPro: false,
 }
 
 // Telegram's in-app browser can restrict storage access in rare/older
@@ -60,6 +62,7 @@ interface AppState extends PersistedState {
   setSoundEnabled: (enabled: boolean) => void
   setLanguage: (lang: Lang) => void
   setGoalWeightKg: (kg: number | null) => void
+  setIsPro: (isPro: boolean) => void
 }
 
 const AppStateContext = createContext<AppState | null>(null)
@@ -85,6 +88,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setSoundEnabled: (soundEnabled) => patch({ soundEnabled }),
     setLanguage: (language) => patch({ language }),
     setGoalWeightKg: (goalWeightKg) => patch({ goalWeightKg }),
+    setIsPro: (isPro) => patch({ isPro }),
   }
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>

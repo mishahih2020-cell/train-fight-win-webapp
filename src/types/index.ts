@@ -20,6 +20,7 @@ export interface CalendarDay {
   dayNumber: number
   workoutTitle?: string
   isRest?: boolean
+  isToday?: boolean
 }
 
 export interface TodayWorkout {

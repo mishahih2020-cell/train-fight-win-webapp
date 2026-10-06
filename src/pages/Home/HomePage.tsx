@@ -8,9 +8,10 @@ import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Sparkline } from '@/components/ui/Chart'
 import { useAppState } from '@/context/AppStateContext'
 import { useT } from '@/i18n/useT'
-import { TRIAL_WORKOUTS, USER, WEEK_DAYS } from '@/data/mock'
+import { TRIAL_WORKOUTS, USER, WEEK_PLAN } from '@/data/mock'
 import { weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
+import { buildCurrentWeek } from '@/lib/calendar'
 import { computeWorkoutStreak } from '@/lib/streak'
 import { formatClock } from '@/hooks/useCountdown'
 import { primeAudio } from '@/lib/sound'
@@ -20,7 +21,9 @@ export function HomePage() {
   const navigate = useNavigate()
   const { profile, language } = useAppState()
   const { t, tn } = useT()
-  const [selectedDay, setSelectedDay] = useState(WEEK_DAYS[1])
+  const weekDays = useMemo(() => buildCurrentWeek(language, WEEK_PLAN), [language])
+  const [selectedDayNumber, setSelectedDayNumber] = useState<number | null>(null)
+  const selectedDay = weekDays.find((d) => d.dayNumber === selectedDayNumber) ?? weekDays.find((d) => d.isToday) ?? weekDays[0]
   const { items: weightEntries } = useRepoList(weightRepo)
   const { items: workoutLog } = useRepoList(workoutLogRepo)
 
@@ -56,18 +59,18 @@ export function HomePage() {
       </div>
 
       <div className="mt-5 flex justify-between">
-        {WEEK_DAYS.map((day) => {
+        {weekDays.map((day) => {
           const active = day.dayNumber === selectedDay.dayNumber
           return (
             <button
               key={day.dayNumber}
-              onClick={() => setSelectedDay(day)}
+              onClick={() => setSelectedDayNumber(day.dayNumber)}
               className="press flex flex-col items-center gap-1.5"
             >
               <span className="text-caption text-[var(--color-text-tertiary)]">{day.weekday}</span>
               <div
                 className={`text-body-secondary flex h-9 w-9 items-center justify-center rounded-full font-semibold ${
-                  active ? 'gradient-accent text-white' : 'text-[var(--color-text-secondary)]'
+                  active ? 'gradient-accent text-white' : day.isToday ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-secondary)]'
                 }`}
               >
                 {day.dayNumber}
@@ -113,7 +116,7 @@ export function HomePage() {
             <div className="text-caption text-[var(--color-text-secondary)]">{t('home.weight')}</div>
             <div className="mt-1 flex items-end justify-between">
               <div>
-                <div className="text-h2 text-[var(--color-text)]">{weight.current.toFixed(1)} кг</div>
+                <div className="text-h2 text-[var(--color-text)]">{weight.current.toFixed(1)} {t('common.kg')}</div>
                 <div className="text-caption mt-0.5 font-medium" style={{ color: weight.deltaColor }}>
                   {weight.deltaLabel}
                 </div>

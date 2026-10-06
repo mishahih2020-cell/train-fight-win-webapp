@@ -34,7 +34,10 @@ export function summarizeWeight(entries: WeightLogEntry[], goal = '', lang: Lang
   return {
     points: sorted.map((e) => ({ date: formatShortDate(e.date, lang), value: e.value })),
     current: latest?.value ?? 0,
-    deltaLabel: latest && prev ? `${delta > 0 ? '+' : ''}${delta.toFixed(1)} кг` : translations[lang]['common.noDataLastTime'],
+    deltaLabel:
+      latest && prev
+        ? `${delta > 0 ? '+' : ''}${delta.toFixed(1)} ${translations[lang]['common.kg']}`
+        : translations[lang]['common.noDataLastTime'],
     deltaColor: delta === 0 ? 'var(--color-text-secondary)' : good ? 'var(--color-success)' : 'var(--color-warning)',
     trendingWell: good,
   }

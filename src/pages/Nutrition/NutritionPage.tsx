@@ -78,7 +78,7 @@ export function NutritionPage() {
       {tab === 'today' ? (
         <>
           <Card className="mt-4 flex items-center gap-4">
-            <CalorieRing current={caloriesEaten} total={calorieTarget} />
+            <CalorieRing current={caloriesEaten} total={calorieTarget} lang={language} />
             <div className="flex flex-1 flex-col gap-2.5">
               {macrosEaten.map((m) => (
                 <div key={m.id} className="flex items-center justify-between">
@@ -143,7 +143,7 @@ export function NutritionPage() {
                     <span className="text-body-secondary text-[var(--color-text)]">{formatShortDate(date, language)}</span>
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: kcal > 0 ? calorieRingColor(kcal, calorieTarget) : 'var(--color-divider)' }} />
-                      <span className="text-body-secondary font-semibold text-[var(--color-text)]">{kcal > 0 ? `${kcal} ккал` : '—'}</span>
+                      <span className="text-body-secondary font-semibold text-[var(--color-text)]">{kcal > 0 ? `${kcal} ${t('common.kcal')}` : '—'}</span>
                     </div>
                   </div>
                 )
@@ -166,7 +166,7 @@ export function NutritionPage() {
           <Card>
             <div className="text-body-secondary mb-1 font-semibold text-[var(--color-text)]">{t('nutrition.recommendations')}</div>
             <div className="text-caption mb-3 text-[var(--color-text-secondary)]">
-              {t('nutrition.target')}: {calorieTarget} ккал
+              {t('nutrition.target')}: {calorieTarget} {t('common.kcal')}
             </div>
             <p className="text-body-secondary text-[var(--color-text-secondary)]">
               {recommendation.kind === 'noData' && t('nutrition.noDataYet')}

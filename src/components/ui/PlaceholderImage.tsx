@@ -1,5 +1,6 @@
 import { User } from 'lucide-react'
 import { useState } from 'react'
+import { useT } from '@/i18n/useT'
 
 interface PlaceholderImageProps {
   className?: string
@@ -24,6 +25,7 @@ export function PlaceholderImage({
   compact = false,
   src,
 }: PlaceholderImageProps) {
+  const { t } = useT()
   const [failed, setFailed] = useState(false)
   const showImage = src && !failed
 
@@ -38,7 +40,7 @@ export function PlaceholderImage({
           <User className={compact ? 'h-4 w-4 text-[var(--color-text-tertiary)]' : 'h-6 w-6 text-[var(--color-text-tertiary)]'} strokeWidth={1.5} />
           {!compact && (
             <span className="text-caption font-medium tracking-tight text-[var(--color-text-tertiary)]">
-              ЗДЕСЬ БУДЕТ ФОТО МАРАТА
+              {t('common.photoPlaceholder')}
             </span>
           )}
         </div>
