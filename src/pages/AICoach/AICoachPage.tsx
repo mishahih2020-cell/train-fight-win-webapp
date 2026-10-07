@@ -1,6 +1,7 @@
-import { Send } from 'lucide-react'
+import { Lock, Send } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Avatar } from '@/components/ui/Avatar'
+import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ChatMessage } from '@/components/ui/ChatMessage'
 import { useAppState } from '@/context/AppStateContext'
@@ -20,8 +21,47 @@ const QUICK_ACTION_KEYS: Record<string, 'aiCoach.quick.plan' | 'aiCoach.quick.nu
   qa3: 'aiCoach.quick.progress',
 }
 
+function AICoachPaywall() {
+  const { setIsPro } = useAppState()
+  const { t } = useT()
+  return (
+    <div className="safe-top px-4 pt-4">
+      <h1 className="text-h1 text-[var(--color-text)]">{t('aiCoach.title')}</h1>
+
+      <Card className="mt-4 flex items-center gap-3">
+        <Avatar size={44} />
+        <div>
+          <div className="text-body-secondary font-semibold text-[var(--color-text)]">{t('aiCoach.name')}</div>
+          <div className="text-caption text-[var(--color-text-secondary)]">{t('aiCoach.subtitle')}</div>
+        </div>
+      </Card>
+
+      <div className="mt-8 flex flex-col items-center text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-card)]">
+          <Lock className="h-6 w-6 text-[var(--color-accent)]" />
+        </div>
+        <h2 className="text-h2 mt-4 text-[var(--color-text)]">{t('aiCoach.lockedTitle')}</h2>
+        <p className="text-body-secondary mt-2 text-[var(--color-text-secondary)]">{t('aiCoach.lockedBody')}</p>
+
+        <ul className="text-body-secondary mt-5 flex flex-col gap-2 self-stretch text-left text-[var(--color-text-secondary)]">
+          <li>• {t('aiCoach.quick.plan')}</li>
+          <li>• {t('aiCoach.quick.nutrition')}</li>
+          <li>• {t('aiCoach.quick.progress')}</li>
+        </ul>
+
+        <Button variant="primary" className="mt-6" onClick={() => setIsPro(true)}>
+          {t('aiCoach.lockedCta', { price: t('profile.subscription.price') })}
+        </Button>
+        <p className="text-caption mt-3 text-[var(--color-text-tertiary)]">{t('profile.subscription.testNote')}</p>
+      </div>
+
+      <div className="h-4" />
+    </div>
+  )
+}
+
 export function AICoachPage() {
-  const { profile, language } = useAppState()
+  const { profile, language, isPro } = useAppState()
   const { t } = useT()
   const { items: weightEntries } = useRepoList(weightRepo)
   const { items: workoutLog } = useRepoList(workoutLogRepo)
@@ -46,6 +86,8 @@ export function AICoachPage() {
     [context, language],
   )
   const messages = [...seedMessages, ...extraMessages]
+
+  if (!isPro) return <AICoachPaywall />
 
   const respond = (replyText: string) => {
     setTyping(true)

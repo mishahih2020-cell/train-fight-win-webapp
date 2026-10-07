@@ -251,12 +251,14 @@ export function ProfilePage() {
           <div className="text-h2 text-[var(--color-text)]">{t('profile.subscription.title')}</div>
           <span className="text-caption rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-2 py-0.5 font-bold text-white">PRO</span>
         </div>
+        {!isPro && <div className="text-h1 mt-2 text-[var(--color-text)]">{t('profile.subscription.price')}</div>}
         <ul className="text-body-secondary mt-4 flex flex-col gap-2 text-[var(--color-text-secondary)]">
           <li>• {t('profile.subscription.perk1')}</li>
           <li>• {t('profile.subscription.perk2')}</li>
           <li>• {t('profile.subscription.perk3')}</li>
           <li>• {t('profile.subscription.perk4')}</li>
         </ul>
+        <p className="text-caption mt-3 text-[var(--color-text-tertiary)]">{t('profile.subscription.coursesNote')}</p>
         {isPro ? (
           <>
             <p className="text-caption mt-4 font-medium text-[var(--color-success)]">{t('profile.subscription.active')}</p>
