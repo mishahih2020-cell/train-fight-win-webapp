@@ -41,6 +41,34 @@ export function groupMealsByDayList(meals: Meal[]): Map<string, Meal[]> {
   return map
 }
 
+/**
+ * Monday-first weeks covering roughly the past month, oldest first. The
+ * current (last) week only includes days up to today — not padded with
+ * future dates — so a chart built from it naturally fills in day by day
+ * instead of always rendering 7 mostly-empty slots.
+ */
+export function buildMonthWeeks(weeksBack = 4): string[][] {
+  const today = new Date()
+  const isoWeekday = (today.getDay() + 6) % 7 // Monday = 0
+  const currentMonday = new Date(today)
+  currentMonday.setDate(today.getDate() - isoWeekday)
+
+  const weeks: string[][] = []
+  for (let w = weeksBack - 1; w >= 0; w--) {
+    const monday = new Date(currentMonday)
+    monday.setDate(currentMonday.getDate() - w * 7)
+    const days: string[] = []
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday)
+      d.setDate(monday.getDate() + i)
+      if (d > today) break
+      days.push(d.toISOString().slice(0, 10))
+    }
+    weeks.push(days)
+  }
+  return weeks
+}
+
 export function lastNDays(n: number): string[] {
   const days: string[] = []
   for (let i = n - 1; i >= 0; i--) {

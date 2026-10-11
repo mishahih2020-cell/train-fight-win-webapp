@@ -5,6 +5,7 @@ import { AdminApp } from '@/admin/AdminApp'
 import { TabLayout } from '@/components/navigation/TabLayout'
 import { OnboardingPage } from '@/pages/Onboarding/OnboardingPage'
 import { ProfileSetupPage } from '@/pages/ProfileSetup/ProfileSetupPage'
+import { WelcomePage } from '@/pages/Welcome/WelcomePage'
 import { HomePage } from '@/pages/Home/HomePage'
 import { WorkoutsPage } from '@/pages/Workouts/WorkoutsPage'
 import { CreateWorkoutPage } from '@/pages/Workouts/CreateWorkoutPage'
@@ -161,6 +162,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<RootRoute />} />
       <Route path="/profile-setup" element={<ProfileSetupPage />} />
+      <Route path="/welcome" element={<WelcomePage />} />
 
       <Route element={<TabLayout />}>
         <Route path="/home" element={<HomePage />} />

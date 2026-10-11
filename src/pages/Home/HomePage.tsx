@@ -1,12 +1,12 @@
 import { Flame } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Sparkline } from '@/components/ui/Chart'
-import { OnboardingTour } from '@/components/onboarding/OnboardingTour'
+import { OnboardingTour, type TourStep } from '@/components/onboarding/OnboardingTour'
 import { useAppState } from '@/context/AppStateContext'
 import { useT } from '@/i18n/useT'
 import { TRIAL_WORKOUTS, USER, WEEK_PLAN } from '@/data/mock'
@@ -20,10 +20,27 @@ import { formatRelativeDate, summarizeWeight } from '@/lib/weight'
 
 export function HomePage() {
   const navigate = useNavigate()
-  const { profile, language, displayName, tourSeen } = useAppState()
+  const { profile, language, displayName, tourSeen, completeTour } = useAppState()
   const { t, tn } = useT()
   const weekDays = useMemo(() => buildCurrentWeek(language, WEEK_PLAN), [language])
   const [selectedDayNumber, setSelectedDayNumber] = useState<number | null>(null)
+  const weekRef = useRef<HTMLDivElement>(null)
+  const statsRef = useRef<HTMLDivElement>(null)
+  const trialRef = useRef<HTMLDivElement>(null)
+  const avatarRef = useRef<HTMLButtonElement>(null)
+  // Stable array identity across re-renders — OnboardingTour measures the
+  // current step's target in a layout effect keyed on the step object, so a
+  // fresh array/object here on every render would re-measure needlessly.
+  const tourSteps = useMemo<TourStep[]>(
+    () => [
+      { titleKey: 'tour.step1Title', bodyKey: 'tour.step1Body', target: weekRef },
+      { titleKey: 'tour.step2Title', bodyKey: 'tour.step2Body', target: statsRef },
+      { titleKey: 'tour.step3Title', bodyKey: 'tour.step3Body', target: trialRef },
+      { titleKey: 'tour.step4Title', bodyKey: 'tour.step4Body', target: null },
+      { titleKey: 'tour.step5Title', bodyKey: 'tour.step5Body', target: avatarRef },
+    ],
+    [],
+  )
   const selectedDay = weekDays.find((d) => d.dayNumber === selectedDayNumber) ?? weekDays.find((d) => d.isToday) ?? weekDays[0]
   const { items: weightEntries } = useRepoList(weightRepo)
   const { items: workoutLog } = useRepoList(workoutLogRepo)
@@ -42,12 +59,12 @@ export function HomePage() {
         <h1 className="text-h1 text-[var(--color-text)]">
           {t('home.greeting')}, {displayName || USER.firstName}!
         </h1>
-        <button onClick={() => navigate('/profile')} aria-label={t('nav.profile')} className="press">
+        <button ref={avatarRef} onClick={() => navigate('/profile')} aria-label={t('nav.profile')} className="press">
           <Avatar size={44} />
         </button>
       </div>
 
-      <div className="mt-5 flex justify-between">
+      <div ref={weekRef} className="mt-5 flex justify-between">
         {weekDays.map((day) => {
           const active = day.dayNumber === selectedDay.dayNumber
           return (
@@ -99,7 +116,7 @@ export function HomePage() {
         )}
       </Card>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <div ref={statsRef} className="mt-4 grid grid-cols-2 gap-3">
         <button onClick={() => navigate('/progress')} className="press text-left">
           <Card>
             <div className="text-caption text-[var(--color-text-secondary)]">{t('home.weight')}</div>
@@ -144,7 +161,7 @@ export function HomePage() {
         </button>
       </div>
 
-      <div className="mt-5">
+      <div ref={trialRef} className="mt-5">
         <div className="text-h2 text-[var(--color-text)]">{t('home.trialSectionTitle')}</div>
         <p className="text-caption mt-0.5 text-[var(--color-text-secondary)]">{t('home.trialSectionSubtitle')}</p>
         <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto pb-1">
@@ -169,7 +186,7 @@ export function HomePage() {
 
       <div className="h-4" />
 
-      {!tourSeen && <OnboardingTour />}
+      {!tourSeen && <OnboardingTour steps={tourSteps} onDone={completeTour} />}
     </div>
   )
 }

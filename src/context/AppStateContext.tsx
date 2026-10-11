@@ -32,7 +32,10 @@ interface PersistedState {
 
 const DEFAULT_STATE: PersistedState = {
   profile: DEFAULT_PROFILE,
-  wheelSpinsLeft: 1,
+  // Not 1 by default — the welcome spin is granted explicitly by the
+  // animated entrance (WelcomePage) when it reaches the reward reveal, so
+  // the in-app claim "+1 spin" is actually true instead of a hidden default.
+  wheelSpinsLeft: 0,
   onboarded: false,
   soundEnabled: true,
   language: 'ru',

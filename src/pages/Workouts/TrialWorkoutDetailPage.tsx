@@ -1,3 +1,4 @@
+import { Play } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Header } from '@/components/navigation/Header'
@@ -38,12 +39,15 @@ export function TrialWorkoutDetailPage() {
       <Header title={trial.title} />
 
       <div className="mt-4 px-4">
-        <div className="relative">
+        <button onClick={start} className="press relative block w-full" aria-label={t('home.startWorkout')}>
           <PlaceholderImage className="aspect-video w-full" darken />
           <span className="text-caption absolute top-3 right-3 rounded-[var(--radius-pill)] bg-black/60 px-2.5 py-1 font-semibold text-white backdrop-blur">
             {t('common.free')}
           </span>
-        </div>
+          <span className="gradient-accent absolute top-1/2 left-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full">
+            <Play className="h-7 w-7 translate-x-0.5 text-white" fill="white" />
+          </span>
+        </button>
 
         <div className="mt-4">
           <div className="text-h1 text-[var(--color-text)] uppercase">{trial.title}</div>
@@ -53,10 +57,6 @@ export function TrialWorkoutDetailPage() {
         </div>
 
         <p className="text-body-secondary mt-4 text-[var(--color-text-secondary)]">{trial.description}</p>
-
-        <Button variant="primary" className="mt-6" onClick={start}>
-          {t('home.startWorkout')}
-        </Button>
       </div>
     </div>
   )

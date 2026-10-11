@@ -1,5 +1,5 @@
 import { Calendar, Camera } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { CalorieRing, LineChart } from '@/components/ui/Chart'
@@ -16,10 +16,12 @@ import { useT } from '@/i18n/useT'
 import { calorieRingColor } from '@/lib/nutrition'
 import { readAndDownscaleImage } from '@/lib/image'
 import {
+  buildMonthWeeks,
   buildRecommendation,
   computeCalorieTarget,
   computeMacroTargets,
   groupMealsByDay,
+  groupMealsByDayList,
   lastNDays,
 } from '@/lib/nutritionRecommend'
 import { formatShortDate } from '@/lib/weight'
@@ -48,6 +50,8 @@ export function NutritionPage() {
   const [pendingPhoto, setPendingPhoto] = useState<{ url: string } | null>(null)
   const [photoNote, setPhotoNote] = useState('')
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null)
+  const [viewDate, setViewDate] = useState<string | null>(null)
+  const weeksScrollRef = useRef<HTMLDivElement>(null)
 
   const today = new Date().toISOString().slice(0, 10)
   const todayMeals = useMemo(() => meals.filter((m) => m.date === today).sort((a, b) => a.time.localeCompare(b.time)), [meals, today])
@@ -67,13 +71,28 @@ export function NutritionPage() {
   }))
 
   const dayTotals = useMemo(() => groupMealsByDay(meals), [meals])
+  const mealsByDay = useMemo(() => groupMealsByDayList(meals), [meals])
   const weekDays = useMemo(() => lastNDays(7), [])
-  const weekPoints = useMemo(
-    () => weekDays.map((date) => ({ date: formatShortDate(date, language), value: dayTotals.get(date) ?? 0 })),
-    [weekDays, dayTotals, language],
-  )
   const recommendation = useMemo(() => buildRecommendation(dayTotals, calorieTarget), [dayTotals, calorieTarget])
   const goalLabel = t(`goal.${profile.goal}`)
+
+  // Swipeable weeks within the past month — the current (last) week is only
+  // as wide as the days actually logged so far, not padded with future
+  // zero-slots, so the chart "fills in" as the week goes rather than always
+  // showing a flat 7-slot grid.
+  const monthWeeks = useMemo(() => buildMonthWeeks(4), [])
+  const weekPointsList = useMemo(
+    () => monthWeeks.map((week) => week.map((date) => ({ date: formatShortDate(date, language), value: dayTotals.get(date) ?? 0 }))),
+    [monthWeeks, dayTotals, language],
+  )
+  useEffect(() => {
+    const el = weeksScrollRef.current
+    if (el) el.scrollLeft = el.scrollWidth
+  }, [weekPointsList.length])
+  const viewDateMeals = useMemo(
+    () => (viewDate ? (mealsByDay.get(viewDate) ?? []).sort((a, b) => a.time.localeCompare(b.time)) : []),
+    [mealsByDay, viewDate],
+  )
 
   const onPhotoSelected = async (file: File) => {
     const url = await readAndDownscaleImage(file)
@@ -165,10 +184,20 @@ export function NutritionPage() {
         </>
       ) : (
         <div className="mt-4 flex flex-col gap-4">
-          <Card className="p-4">
+          <div>
             <div className="text-caption mb-2 text-[var(--color-text-secondary)]">{t('nutrition.weeklyCalories')}</div>
-            <LineChart points={weekPoints} />
-          </Card>
+            <div ref={weeksScrollRef} className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto scroll-smooth">
+              {weekPointsList.map((points, i) => (
+                <Card key={i} className="w-full shrink-0 snap-center p-4">
+                  {points.length > 1 ? (
+                    <LineChart points={points} />
+                  ) : (
+                    <p className="text-body-secondary py-6 text-center text-[var(--color-text-secondary)]">{t('progress.needMorePoints')}</p>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </div>
 
           <div>
             <div className="text-caption mb-2 text-[var(--color-text-secondary)]">{t('nutrition.byDay')}</div>
@@ -176,16 +205,17 @@ export function NutritionPage() {
               {weekDays.map((date) => {
                 const kcal = dayTotals.get(date) ?? 0
                 return (
-                  <div
+                  <button
                     key={date}
-                    className="flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--color-divider)] bg-[var(--color-card)] px-4 py-2.5"
+                    onClick={() => setViewDate(date)}
+                    className="press flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--color-divider)] bg-[var(--color-card)] px-4 py-2.5 text-left"
                   >
                     <span className="text-body-secondary text-[var(--color-text)]">{formatShortDate(date, language)}</span>
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: kcal > 0 ? calorieRingColor(kcal, calorieTarget) : 'var(--color-divider)' }} />
                       <span className="text-body-secondary font-semibold text-[var(--color-text)]">{kcal > 0 ? `${kcal} ${t('common.kcal')}` : '—'}</span>
                     </div>
-                  </div>
+                  </button>
                 )
               })}
             </div>
@@ -237,6 +267,17 @@ export function NutritionPage() {
         <Button variant="primary" className="mt-5" onClick={savePhotoMeal}>
           {t('common.save')}
         </Button>
+      </Modal>
+
+      <Modal open={!!viewDate} onClose={() => setViewDate(null)}>
+        <div className="text-h2 mb-4 text-[var(--color-text)]">{viewDate && formatShortDate(viewDate, language)}</div>
+        <div className="flex flex-col gap-2.5">
+          {viewDateMeals.length > 0 ? (
+            viewDateMeals.map((meal) => <FoodCard key={meal.id} meal={meal} onClick={() => setEditingMeal(meal)} />)
+          ) : (
+            <p className="text-body-secondary text-center text-[var(--color-text-secondary)]">{t('nutrition.noMealsThisDay')}</p>
+          )}
+        </div>
       </Modal>
 
       <MealEditModal key={editingMeal?.id ?? 'none'} meal={editingMeal} unit={unit} onClose={() => setEditingMeal(null)} onChanged={reload} />

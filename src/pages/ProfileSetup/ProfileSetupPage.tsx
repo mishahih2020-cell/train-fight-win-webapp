@@ -40,7 +40,7 @@ export function ProfileSetupPage() {
     }
 
     completeOnboarding()
-    navigate('/home')
+    navigate('/welcome')
   }
 
   return (
