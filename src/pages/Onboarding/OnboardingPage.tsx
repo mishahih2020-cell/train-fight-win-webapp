@@ -41,7 +41,7 @@ export function OnboardingPage() {
             {t('onboarding.subtitle')}
           </p>
         </div>
-        <Button variant="primary" onClick={() => navigate('/profile-setup')}>
+        <Button variant="primary" onClick={() => navigate('/welcome')}>
           {t('onboarding.start')}
         </Button>
       </div>

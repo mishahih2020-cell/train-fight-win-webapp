@@ -26,6 +26,7 @@ import { USER } from '@/data/mock'
 import { awardBonus, bonusLedgerRepo, ordersRepo, promoCodesRepo, weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { formatRub } from '@/lib/format'
+import { resetAppData } from '@/lib/reset'
 import { computeWorkoutStreak } from '@/lib/streak'
 import { formatShortDate, summarizeWeight } from '@/lib/weight'
 import type { Lang } from '@/i18n/translations'
@@ -72,6 +73,7 @@ export function ProfilePage() {
   const [promoCode, setPromoCode] = useState('')
   const [promoResult, setPromoResult] = useState<'ok' | 'error' | 'used' | null>(null)
   const [pushEnabled, setPushEnabled] = useState(true)
+  const [resetConfirming, setResetConfirming] = useState(false)
   const [goalForm, setGoalForm] = useState({ goal: profile.goal, targetWeight: goalWeightKg != null ? String(goalWeightKg) : '' })
   const [nameDraft, setNameDraft] = useState(displayName || USER.firstName)
 
@@ -316,7 +318,13 @@ export function ProfilePage() {
         )}
       </Modal>
 
-      <Modal open={modal === 'settings'} onClose={() => setModal(null)}>
+      <Modal
+        open={modal === 'settings'}
+        onClose={() => {
+          setModal(null)
+          setResetConfirming(false)
+        }}
+      >
         <div className="text-h2 mb-4 text-[var(--color-text)]">{t('profile.settingsModal.title')}</div>
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -344,7 +352,31 @@ export function ProfilePage() {
             </div>
           </div>
         </div>
-        <Button variant="primary" className="mt-6" onClick={() => setModal(null)}>
+
+        <div className="mt-6 border-t border-[var(--color-divider)] pt-5">
+          <p className="text-caption text-[var(--color-text-tertiary)]">{t('profile.settingsModal.resetHint')}</p>
+          {resetConfirming ? (
+            <>
+              <p className="text-caption mt-2 font-medium text-[var(--color-warning)]">{t('profile.settingsModal.resetConfirm')}</p>
+              <Button variant="outline" className="mt-3" onClick={resetAppData}>
+                {t('profile.settingsModal.resetConfirmYes')}
+              </Button>
+            </>
+          ) : (
+            <Button variant="ghost" className="mt-3" onClick={() => setResetConfirming(true)}>
+              {t('profile.settingsModal.reset')}
+            </Button>
+          )}
+        </div>
+
+        <Button
+          variant="primary"
+          className="mt-6"
+          onClick={() => {
+            setModal(null)
+            setResetConfirming(false)
+          }}
+        >
           {t('common.done')}
         </Button>
       </Modal>

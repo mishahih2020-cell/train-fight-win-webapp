@@ -99,7 +99,7 @@ export function WelcomePage() {
         <div className="animate-scale-in flex w-full max-w-sm flex-col items-center text-center">
           <div className="text-h1 text-[var(--color-text)]">{t('welcome.rewardTitle')}</div>
           <p className="text-body-secondary mt-2 text-[var(--color-text-secondary)]">{t('welcome.rewardBody')}</p>
-          <Button variant="primary" size="large" className="mt-8" onClick={() => navigate('/home')}>
+          <Button variant="primary" size="large" className="mt-8" onClick={() => navigate('/profile-setup')}>
             {t('welcome.enter')}
           </Button>
         </div>
