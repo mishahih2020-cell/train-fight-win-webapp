@@ -1,7 +1,9 @@
 import {
+  Apple,
   ChevronRight,
   Gift,
   GraduationCap,
+  Pencil,
   Settings as SettingsIcon,
   ShoppingBag,
   Star,
@@ -29,9 +31,9 @@ import { formatShortDate, summarizeWeight } from '@/lib/weight'
 import type { Lang } from '@/i18n/translations'
 import type { Goal } from '@/types'
 
-type ModalKind = 'orders' | 'promo' | 'subscription' | 'settings' | 'goals' | null
+type ModalKind = 'orders' | 'promo' | 'subscription' | 'settings' | 'goals' | 'editName' | null
 
-const ROUTES: Record<string, string> = { s1: '/profile-setup', s3: '/courses', s6: '/wheel' }
+const ROUTES: Record<string, string> = { s1: '/profile-setup', s3: '/courses', s6: '/wheel', s9: '/nutrition' }
 const MODALS: Record<string, Exclude<ModalKind, null>> = { s2: 'goals', s4: 'orders', s5: 'promo', s7: 'subscription', s8: 'settings' }
 
 const GOAL_KEYS: Goal[] = ['fight', 'loseWeight', 'gainMass', 'generalFitness']
@@ -39,6 +41,7 @@ const GOAL_KEYS: Goal[] = ['fight', 'loseWeight', 'gainMass', 'generalFitness']
 const SETTINGS_ITEMS = [
   { id: 's1', label: 'profile.item.myData' as const, icon: User },
   { id: 's2', label: 'profile.item.myGoals' as const, icon: Target },
+  { id: 's9', label: 'profile.item.nutrition' as const, icon: Apple },
   { id: 's3', label: 'profile.item.myCourses' as const, icon: GraduationCap },
   { id: 's4', label: 'profile.item.orderHistory' as const, icon: ShoppingBag },
   { id: 's5', label: 'profile.item.promoCodes' as const, icon: Ticket },
@@ -49,14 +52,28 @@ const SETTINGS_ITEMS = [
 
 export function ProfilePage() {
   const navigate = useNavigate()
-  const { profile, setProfile, goalWeightKg, setGoalWeightKg, soundEnabled, setSoundEnabled, language, setLanguage, isPro, setIsPro } =
-    useAppState()
+  const {
+    profile,
+    setProfile,
+    goalWeightKg,
+    setGoalWeightKg,
+    soundEnabled,
+    setSoundEnabled,
+    language,
+    setLanguage,
+    isPro,
+    setIsPro,
+    displayName,
+    setDisplayName,
+    telegramUsername,
+  } = useAppState()
   const { t } = useT()
   const [modal, setModal] = useState<ModalKind>(null)
   const [promoCode, setPromoCode] = useState('')
   const [promoResult, setPromoResult] = useState<'ok' | 'error' | 'used' | null>(null)
   const [pushEnabled, setPushEnabled] = useState(true)
   const [goalForm, setGoalForm] = useState({ goal: profile.goal, targetWeight: goalWeightKg != null ? String(goalWeightKg) : '' })
+  const [nameDraft, setNameDraft] = useState(displayName || USER.firstName)
 
   const { items: orders } = useRepoList(ordersRepo)
   const { items: weightEntries } = useRepoList(weightRepo)
@@ -79,6 +96,17 @@ export function ProfilePage() {
     const kind = MODALS[id]
     if (kind === 'goals') setGoalForm({ goal: profile.goal, targetWeight: goalWeightKg != null ? String(goalWeightKg) : '' })
     if (kind) setModal(kind)
+  }
+
+  const openEditName = () => {
+    setNameDraft(displayName || USER.firstName)
+    setModal('editName')
+  }
+
+  const saveName = () => {
+    const trimmed = nameDraft.trim()
+    if (trimmed) setDisplayName(trimmed)
+    setModal(null)
   }
 
   const saveGoals = () => {
@@ -116,15 +144,16 @@ export function ProfilePage() {
 
       <div className="mt-5 flex flex-col items-center text-center">
         <PlaceholderImage className="h-24 w-24" rounded="rounded-full" />
-        <div className="mt-3 flex items-center gap-2">
-          <span className="text-h2 text-[var(--color-text)]">{USER.firstName}</span>
+        <button onClick={openEditName} className="press mt-3 flex items-center gap-2">
+          <span className="text-h2 text-[var(--color-text)]">{displayName || USER.firstName}</span>
           {isPro && (
             <span className="text-caption rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-2 py-0.5 font-bold text-white">
               PRO
             </span>
           )}
-        </div>
-        <span className="text-body-secondary text-[var(--color-text-secondary)]">{USER.username}</span>
+          <Pencil className="h-3.5 w-3.5 text-[var(--color-text-tertiary)]" />
+        </button>
+        <span className="text-body-secondary text-[var(--color-text-secondary)]">{telegramUsername || USER.username}</span>
       </div>
 
       <div className="mt-5 grid grid-cols-3 gap-3">
@@ -166,6 +195,15 @@ export function ProfilePage() {
       </div>
 
       <div className="h-4" />
+
+      <Modal open={modal === 'editName'} onClose={() => setModal(null)}>
+        <div className="text-h2 mb-1 text-[var(--color-text)]">{t('profile.editNameTitle')}</div>
+        <p className="text-caption mb-4 text-[var(--color-text-tertiary)]">{t('profile.nameFromTelegram')}</p>
+        <Input label={t('profile.nameLabel')} value={nameDraft} onChange={(e) => setNameDraft(e.target.value)} autoFocus />
+        <Button variant="primary" className="mt-5" disabled={!nameDraft.trim()} onClick={saveName}>
+          {t('common.save')}
+        </Button>
+      </Modal>
 
       <Modal open={modal === 'goals'} onClose={() => setModal(null)}>
         <div className="text-h2 mb-1 text-[var(--color-text)]">{t('profile.goals.title')}</div>

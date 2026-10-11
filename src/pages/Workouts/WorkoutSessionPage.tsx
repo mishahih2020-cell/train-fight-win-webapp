@@ -1,5 +1,5 @@
 import { ChevronLeft, Pause, Play, SkipBack, SkipForward, Square } from 'lucide-react'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { IconButton } from '@/components/ui/IconButton'
@@ -12,12 +12,20 @@ import { useRoundTimer } from '@/hooks/useRoundTimer'
 import { formatClock } from '@/hooks/useCountdown'
 import { haptic } from '@/lib/haptics'
 import { DEFAULT_REST_SEC, DEFAULT_ROUNDS, DEFAULT_ROUND_SEC, type SessionNavState } from '@/lib/session'
-import { playComplete, playCountdownTick, playRoundEnd, playRoundStart, playWarning } from '@/lib/sound'
+import { playComplete, playCountdownTick, playRoundEnd, playRoundStart, playWarning, primeAudio } from '@/lib/sound'
 
 export function WorkoutSessionPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { soundEnabled } = useAppState()
+
+  // Backup unlock in case whatever navigated here forgot to call primeAudio()
+  // in its own click handler — this screen's own mount is itself still
+  // close enough to the user's tap to count as "from a user gesture" on most
+  // browsers' autoplay-policy checks.
+  useEffect(() => {
+    primeAudio()
+  }, [])
   const { t, tn } = useT()
   const navState = (location.state as SessionNavState | null) ?? {}
 

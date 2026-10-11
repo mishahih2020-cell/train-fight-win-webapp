@@ -1,14 +1,20 @@
-import { Camera } from 'lucide-react'
+import { Calendar, Camera } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/Button'
 import { CalorieRing, LineChart } from '@/components/ui/Chart'
 import { Card } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
+import { Modal } from '@/components/ui/Modal'
 import { Tabs } from '@/components/ui/Tabs'
 import { FoodCard } from '@/components/cards/FoodCard'
+import { MealEditModal } from '@/components/cards/MealEditModal'
 import { mealsRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { useAppState } from '@/context/AppStateContext'
 import { useT } from '@/i18n/useT'
 import { calorieRingColor } from '@/lib/nutrition'
+import { readAndDownscaleImage } from '@/lib/image'
 import {
   buildRecommendation,
   computeCalorieTarget,
@@ -17,8 +23,13 @@ import {
   lastNDays,
 } from '@/lib/nutritionRecommend'
 import { formatShortDate } from '@/lib/weight'
+import type { Lang } from '@/i18n/translations'
+import type { Meal } from '@/types'
 
-const MOCK_DISH_NAMES = ['Творог с ягодами', 'Гречка с курицей', 'Салат с тунцом', 'Протеиновый смузи', 'Индейка с овощами']
+const MOCK_DISH_NAMES: Record<Lang, string[]> = {
+  ru: ['Творог с ягодами', 'Гречка с курицей', 'Салат с тунцом', 'Протеиновый смузи', 'Индейка с овощами'],
+  en: ['Cottage cheese with berries', 'Buckwheat with chicken', 'Tuna salad', 'Protein smoothie', 'Turkey with vegetables'],
+}
 const MACRO_DEFS = [
   { id: 'protein', color: 'var(--color-success)' },
   { id: 'carbs', color: 'var(--color-accent)' },
@@ -26,12 +37,17 @@ const MACRO_DEFS = [
 ] as const
 
 export function NutritionPage() {
+  const navigate = useNavigate()
   const { profile, language } = useAppState()
   const { t } = useT()
   const [tab, setTab] = useState<'today' | 'analytics'>('today')
   const { items: meals, reload } = useRepoList(mealsRepo)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const unit = language === 'en' ? 'g' : 'г'
+
+  const [pendingPhoto, setPendingPhoto] = useState<{ url: string } | null>(null)
+  const [photoNote, setPhotoNote] = useState('')
+  const [editingMeal, setEditingMeal] = useState<Meal | null>(null)
 
   const today = new Date().toISOString().slice(0, 10)
   const todayMeals = useMemo(() => meals.filter((m) => m.date === today).sort((a, b) => a.time.localeCompare(b.time)), [meals, today])
@@ -59,17 +75,39 @@ export function NutritionPage() {
   const recommendation = useMemo(() => buildRecommendation(dayTotals, calorieTarget), [dayTotals, calorieTarget])
   const goalLabel = t(`goal.${profile.goal}`)
 
-  const addMealFromPhoto = () => {
+  const onPhotoSelected = async (file: File) => {
+    const url = await readAndDownscaleImage(file)
+    setPendingPhoto({ url })
+    setPhotoNote('')
+  }
+
+  const savePhotoMeal = () => {
+    if (!pendingPhoto) return
     const now = new Date()
     const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-    const dish = MOCK_DISH_NAMES[Math.floor(Math.random() * MOCK_DISH_NAMES.length)]
+    const note = photoNote.trim()
+    const dishNames = MOCK_DISH_NAMES[language]
+    const title = note || dishNames[Math.floor(Math.random() * dishNames.length)]
     const kcal = 350 + Math.floor(Math.random() * 300)
-    mealsRepo.add({ id: `photo-${Date.now()}`, date: today, name: 'Перекус', title: dish, time, kcal }).then(reload)
+    mealsRepo
+      .add({ id: `photo-${Date.now()}`, date: today, name: 'snack', title, time, kcal, photoUrl: pendingPhoto.url, note: note || undefined })
+      .then(reload)
+    setPendingPhoto(null)
+    setPhotoNote('')
   }
 
   return (
     <div className="safe-top px-4 pt-4">
-      <h1 className="text-h1 text-[var(--color-text)]">{t('nutrition.title')}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-h1 text-[var(--color-text)]">{t('nutrition.title')}</h1>
+        <button
+          onClick={() => navigate('/nutrition/calendar')}
+          aria-label={t('nutrition.calendar')}
+          className="press flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-divider)] bg-[var(--color-card)]"
+        >
+          <Calendar className="h-4 w-4 text-[var(--color-text-secondary)]" />
+        </button>
+      </div>
 
       <div className="mt-4">
         <Tabs options={['today', 'analytics']} value={tab} onChange={setTab} labelFor={(k) => t(`nutrition.tab.${k}`)} />
@@ -101,7 +139,8 @@ export function NutritionPage() {
             capture="environment"
             className="hidden"
             onChange={(e) => {
-              if (e.target.files?.length) addMealFromPhoto()
+              const file = e.target.files?.[0]
+              if (file) onPhotoSelected(file)
               e.target.value = ''
             }}
           />
@@ -118,6 +157,7 @@ export function NutritionPage() {
               <FoodCard
                 key={meal.id}
                 meal={meal}
+                onClick={() => setEditingMeal(meal)}
                 onAdd={i === todayMeals.length - 1 ? () => fileInputRef.current?.click() : undefined}
               />
             ))}
@@ -186,6 +226,20 @@ export function NutritionPage() {
       )}
 
       <div className="h-4" />
+
+      <Modal open={!!pendingPhoto} onClose={() => setPendingPhoto(null)}>
+        <div className="text-h2 mb-4 text-[var(--color-text)]">{t('nutrition.photoModalTitle')}</div>
+        {pendingPhoto && <img src={pendingPhoto.url} alt="" className="h-40 w-full rounded-[var(--radius-card)] object-cover" />}
+        <div className="mt-4">
+          <Input label={t('nutrition.note')} placeholder={t('nutrition.notePlaceholder')} value={photoNote} onChange={(e) => setPhotoNote(e.target.value)} />
+          <p className="text-caption mt-1.5 text-[var(--color-text-tertiary)]">{t('nutrition.noteHint')}</p>
+        </div>
+        <Button variant="primary" className="mt-5" onClick={savePhotoMeal}>
+          {t('common.save')}
+        </Button>
+      </Modal>
+
+      <MealEditModal key={editingMeal?.id ?? 'none'} meal={editingMeal} unit={unit} onClose={() => setEditingMeal(null)} onChanged={reload} />
     </div>
   )
 }

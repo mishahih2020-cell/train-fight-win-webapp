@@ -9,13 +9,28 @@ import { HomePage } from '@/pages/Home/HomePage'
 import { WorkoutsPage } from '@/pages/Workouts/WorkoutsPage'
 import { CreateWorkoutPage } from '@/pages/Workouts/CreateWorkoutPage'
 import { WorkoutSessionPage } from '@/pages/Workouts/WorkoutSessionPage'
+import { TrialWorkoutDetailPage } from '@/pages/Workouts/TrialWorkoutDetailPage'
 import { ProgressPage } from '@/pages/Progress/ProgressPage'
 import { NutritionPage } from '@/pages/Nutrition/NutritionPage'
+import { NutritionCalendarPage } from '@/pages/Nutrition/NutritionCalendarPage'
 import { AICoachPage } from '@/pages/AICoach/AICoachPage'
 import { CoursesPage } from '@/pages/Courses/CoursesPage'
 import { CourseDetailPage } from '@/pages/Courses/CourseDetailPage'
 import { ProfilePage } from '@/pages/Profile/ProfilePage'
 import { WheelPage } from '@/pages/Wheel/WheelPage'
+
+// One-shot: fills in the display name/username from Telegram's own launch
+// data so a new user's profile isn't stuck on a generic placeholder — never
+// overwrites a name the user has since edited themselves (see
+// AppStateContext.prefillFromTelegram).
+function useTelegramIdentityPrefill() {
+  const { prefillFromTelegram } = useAppState()
+  useEffect(() => {
+    const user = window.Telegram?.WebApp?.initDataUnsafe?.user
+    if (!user?.first_name) return
+    prefillFromTelegram(user.first_name, user.username ? `@${user.username}` : null)
+  }, [prefillFromTelegram])
+}
 
 function useTelegramInit() {
   useEffect(() => {
@@ -132,6 +147,7 @@ function useTelegramBackButton() {
 
 function AppRoutes() {
   useTelegramInit()
+  useTelegramIdentityPrefill()
   useTelegramContentSafeArea()
   useTelegramBackButton()
 
@@ -151,7 +167,9 @@ function AppRoutes() {
 
       <Route path="/workouts/new" element={<CreateWorkoutPage />} />
       <Route path="/workouts/session" element={<WorkoutSessionPage />} />
+      <Route path="/workouts/trial/:id" element={<TrialWorkoutDetailPage />} />
       <Route path="/courses/:id" element={<CourseDetailPage />} />
+      <Route path="/nutrition/calendar" element={<NutritionCalendarPage />} />
       <Route path="/progress" element={<ProgressPage />} />
       <Route path="/wheel" element={<WheelPage />} />
 

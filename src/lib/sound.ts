@@ -1,6 +1,10 @@
 let audioCtx: AudioContext | null = null
 
 function getCtx() {
+  // A context can end up 'closed' (some WebViews close it on tab/visibility
+  // changes) — recreate rather than keep handing back a dead context that
+  // will never produce sound again.
+  if (audioCtx && audioCtx.state === 'closed') audioCtx = null
   if (!audioCtx) {
     const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
     if (!Ctor) return null
@@ -15,13 +19,17 @@ function getCtx() {
  * unlocked by a direct user gesture, and by the time the round timer wants
  * to beep we're several ticks and a route change removed from any click —
  * priming the (module-level, SPA-persistent) AudioContext here means it's
- * already unlocked by the time the timer needs it.
+ * already unlocked by the time the timer needs it. Safe to call repeatedly
+ * (e.g. again on the session screen's own mount) as a fallback in case some
+ * entry point's click handler got skipped.
  */
 export function primeAudio() {
   try {
-    getCtx()?.resume()
+    const ctx = getCtx()
+    if (ctx && ctx.state === 'suspended') void ctx.resume()
   } catch {
-    // Web Audio unsupported/blocked — sounds just won't play
+    // Web Audio unsupported/blocked (or the device's silent switch mutes
+    // WebView audio on some platforms) — sounds just won't play
   }
 }
 

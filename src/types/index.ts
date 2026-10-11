@@ -59,6 +59,7 @@ export interface ProgressStat {
   icon: 'chart' | 'clock' | 'trophy' | 'flame'
 }
 
+/** `name` is a stable key ('breakfast'|'lunch'|'dinner'|'snack') — translated via `nutrition.meal.*`. */
 export interface Meal {
   id: string
   date: string // yyyy-mm-dd
@@ -66,6 +67,15 @@ export interface Meal {
   title: string
   time: string
   kcal: number
+  /** Grams/macros are optional — only present once the user (or a future real AI) fills them in. */
+  grams?: number
+  protein?: number
+  carbs?: number
+  fats?: number
+  /** Compressed data URL of the user's own photo — never a stock/mock image. */
+  photoUrl?: string
+  /** Freeform note the user typed when logging the photo, for a future real AI pass. */
+  note?: string
 }
 
 export interface MacroStat {

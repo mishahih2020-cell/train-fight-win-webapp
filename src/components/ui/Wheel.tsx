@@ -56,14 +56,18 @@ export function Wheel({ segments, rotation, spinning, size = 288 }: WheelProps) 
         {segments.map((seg, i) => {
           const mid = i * segAngle + segAngle / 2
           const lines = seg.label.split('\n')
+          // Keep each label legible: radiating text upside-down on the
+          // bottom half of the wheel is unreadable, so segments past the
+          // 3-9 o'clock line get an extra 180° to stay right-side up.
+          const upright = mid > 90 && mid < 270 ? mid + 180 : mid
           return (
             <div
               key={seg.id}
               className="absolute top-1/2 left-1/2 flex w-20 flex-col items-center text-center"
-              style={{ transform: `rotate(${mid}deg) translateY(-${size / 2 - 44}px) rotate(0deg)`, marginLeft: -40 }}
+              style={{ transform: `rotate(${mid}deg) translateY(-${size / 2 - 44}px) rotate(${upright - mid}deg)`, marginLeft: -40 }}
             >
               {lines.map((line) => (
-                <span key={line} className="text-caption font-semibold text-white drop-shadow-sm">
+                <span key={line} className="text-caption leading-tight font-bold text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]">
                   {line}
                 </span>
               ))}
@@ -77,10 +81,19 @@ export function Wheel({ segments, rotation, spinning, size = 288 }: WheelProps) 
       >
         <Gift className="h-7 w-7 text-white" strokeWidth={1.75} />
       </div>
-      {/* pointer */}
+      {/* pointer — a narrow downward triangle so it clearly singles out one
+          segment under its tip, rather than a chunky diamond that reads as
+          straddling two segments. */}
       <div
-        className="absolute -top-1 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 bg-[var(--color-accent)]"
-        style={{ boxShadow: '0 0 8px rgba(255,30,45,0.6)' }}
+        className="absolute top-1 left-1/2 -translate-x-1/2"
+        style={{
+          width: 0,
+          height: 0,
+          borderLeft: '9px solid transparent',
+          borderRight: '9px solid transparent',
+          borderTop: '18px solid var(--color-accent)',
+          filter: 'drop-shadow(0 0 4px rgba(255,30,45,0.6))',
+        }}
       />
     </div>
   )

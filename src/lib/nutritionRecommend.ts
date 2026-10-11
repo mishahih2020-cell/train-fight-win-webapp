@@ -30,6 +30,17 @@ export function groupMealsByDay(meals: Meal[]): Map<string, number> {
   return map
 }
 
+/** Same grouping but keeping the full meal records, for calendar day-detail views. */
+export function groupMealsByDayList(meals: Meal[]): Map<string, Meal[]> {
+  const map = new Map<string, Meal[]>()
+  for (const meal of meals) {
+    const list = map.get(meal.date)
+    if (list) list.push(meal)
+    else map.set(meal.date, [meal])
+  }
+  return map
+}
+
 export function lastNDays(n: number): string[] {
   const days: string[] = []
   for (let i = n - 1; i >= 0; i--) {

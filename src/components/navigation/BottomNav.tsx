@@ -1,16 +1,17 @@
-import { Apple, Bot, Dumbbell, GraduationCap, Home, Lock, User } from 'lucide-react'
+import { Bot, Dumbbell, GraduationCap, Home, Lock } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useAppState } from '@/context/AppStateContext'
 import { useT } from '@/i18n/useT'
 import type { TranslationKey } from '@/i18n/translations'
 
+// Only the 4 most-used sections live in the tab bar — Nutrition and Profile
+// (plus everything under it: goals, orders, subscription, settings) are one
+// tap away via the avatar button on Home instead of competing for space here.
 const ITEMS: Array<{ to: string; labelKey: TranslationKey; icon: typeof Home; end: boolean; locked?: boolean }> = [
   { to: '/home', labelKey: 'nav.home', icon: Home, end: true },
   { to: '/workouts', labelKey: 'nav.workouts', icon: Dumbbell, end: false },
-  { to: '/nutrition', labelKey: 'nav.nutrition', icon: Apple, end: false },
   { to: '/ai-coach', labelKey: 'nav.aiCoach', icon: Bot, end: false, locked: true },
   { to: '/courses', labelKey: 'nav.courses', icon: GraduationCap, end: false },
-  { to: '/profile', labelKey: 'nav.profile', icon: User, end: false },
 ]
 
 export function BottomNav() {

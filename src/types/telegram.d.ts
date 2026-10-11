@@ -7,6 +7,13 @@ interface TelegramSafeAreaInset {
   right: number
 }
 
+interface TelegramUser {
+  id: number
+  first_name: string
+  last_name?: string
+  username?: string
+}
+
 declare global {
   interface Window {
     Telegram?: {
@@ -43,6 +50,12 @@ declare global {
           impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void
           notificationOccurred: (type: 'error' | 'success' | 'warning') => void
           selectionChanged: () => void
+        }
+        // Signed by Telegram at launch — trustworthy for display purposes
+        // (prefilling a name), but verifying it server-side would need the
+        // raw `initData` string checked against the bot token, not this.
+        initDataUnsafe?: {
+          user?: TelegramUser
         }
       }
     }

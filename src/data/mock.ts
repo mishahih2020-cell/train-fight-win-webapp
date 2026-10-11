@@ -40,13 +40,35 @@ export const AI_MESSAGES: ChatMessageData[] = [
 export interface TrialWorkout {
   id: string
   title: string
+  description: string
   rounds: number
   roundSec: number
   restSec: number
 }
 
 export const TRIAL_WORKOUTS: TrialWorkout[] = [
-  { id: 'trial-1', title: 'Quick Boxing Basics', rounds: 3, roundSec: 120, restSec: 30 },
-  { id: 'trial-2', title: 'Muay Thai Starter', rounds: 4, roundSec: 150, restSec: 45 },
-  { id: 'trial-3', title: 'Core & Conditioning', rounds: 5, roundSec: 60, restSec: 20 },
+  {
+    id: 'trial-1',
+    title: 'Quick Boxing Basics',
+    description: 'Короткая разминка с базовыми ударами руками — джеб, кросс, хук. Идеально для первого знакомства с боксом.',
+    rounds: 3,
+    roundSec: 120,
+    restSec: 30,
+  },
+  {
+    id: 'trial-2',
+    title: 'Muay Thai Starter',
+    description: 'Базовые удары коленями и локтями в связке с руками — вводная тренировка по тайскому боксу.',
+    rounds: 4,
+    roundSec: 150,
+    restSec: 45,
+  },
+  {
+    id: 'trial-3',
+    title: 'Core & Conditioning',
+    description: 'Силовая тренировка на корпус и общую выносливость — без инвентаря, можно делать дома.',
+    rounds: 5,
+    roundSec: 60,
+    restSec: 20,
+  },
 ]

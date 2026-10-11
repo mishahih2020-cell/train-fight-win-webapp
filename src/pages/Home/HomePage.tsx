@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Sparkline } from '@/components/ui/Chart'
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour'
 import { useAppState } from '@/context/AppStateContext'
 import { useT } from '@/i18n/useT'
 import { TRIAL_WORKOUTS, USER, WEEK_PLAN } from '@/data/mock'
@@ -19,7 +20,7 @@ import { formatRelativeDate, summarizeWeight } from '@/lib/weight'
 
 export function HomePage() {
   const navigate = useNavigate()
-  const { profile, language } = useAppState()
+  const { profile, language, displayName, tourSeen } = useAppState()
   const { t, tn } = useT()
   const weekDays = useMemo(() => buildCurrentWeek(language, WEEK_PLAN), [language])
   const [selectedDayNumber, setSelectedDayNumber] = useState<number | null>(null)
@@ -34,24 +35,12 @@ export function HomePage() {
   )
   const streak = useMemo(() => computeWorkoutStreak(workoutLog.map((w) => w.date)), [workoutLog])
 
-  const startTrial = (trial: (typeof TRIAL_WORKOUTS)[number]) => {
-    primeAudio()
-    navigate('/workouts/session', {
-      state: {
-        workoutName: trial.title,
-        rounds: trial.rounds,
-        roundSec: trial.roundSec,
-        restSec: trial.restSec,
-        isQuickTimer: true,
-      },
-    })
-  }
 
   return (
     <div className="safe-top px-4 pt-4">
       <div className="flex items-center justify-between">
         <h1 className="text-h1 text-[var(--color-text)]">
-          {t('home.greeting')}, {USER.firstName}!
+          {t('home.greeting')}, {displayName || USER.firstName}!
         </h1>
         <button onClick={() => navigate('/profile')} aria-label={t('nav.profile')} className="press">
           <Avatar size={44} />
@@ -130,7 +119,7 @@ export function HomePage() {
             <div className="text-caption text-[var(--color-text-secondary)]">{t('home.streak')}</div>
             <div className="mt-1 flex items-end justify-between">
               <div className="text-h2 text-[var(--color-text)]">{tn('home.streakDays', streak)}</div>
-              <Flame className="h-6 w-6 text-[var(--color-warning)]" fill="var(--color-warning)" strokeWidth={0} />
+              <Flame className="h-8 w-8 text-[var(--color-warning)]" fill="var(--color-warning)" strokeWidth={0} />
             </div>
           </Card>
         </button>
@@ -162,7 +151,7 @@ export function HomePage() {
           {TRIAL_WORKOUTS.map((trial) => (
             <button
               key={trial.id}
-              onClick={() => startTrial(trial)}
+              onClick={() => navigate(`/workouts/trial/${trial.id}`)}
               className="press card-shadow w-40 shrink-0 overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)] text-left"
             >
               <PlaceholderImage className="h-24 w-full" rounded="rounded-none" compact />
@@ -179,6 +168,8 @@ export function HomePage() {
       </div>
 
       <div className="h-4" />
+
+      {!tourSeen && <OnboardingTour />}
     </div>
   )
 }

@@ -22,6 +22,12 @@ interface PersistedState {
   language: Lang
   goalWeightKg: number | null
   isPro: boolean
+  /** Editable by the user; prefilled once from Telegram's own identity — see App.tsx. */
+  displayName: string
+  telegramUsername: string | null
+  /** Guards the one-time Telegram prefill so it never overwrites a name the user already edited. */
+  telegramPrefillDone: boolean
+  tourSeen: boolean
 }
 
 const DEFAULT_STATE: PersistedState = {
@@ -32,6 +38,10 @@ const DEFAULT_STATE: PersistedState = {
   language: 'ru',
   goalWeightKg: null,
   isPro: false,
+  displayName: '',
+  telegramUsername: null,
+  telegramPrefillDone: false,
+  tourSeen: false,
 }
 
 // Telegram's in-app browser can restrict storage access in rare/older
@@ -63,6 +73,10 @@ interface AppState extends PersistedState {
   setLanguage: (lang: Lang) => void
   setGoalWeightKg: (kg: number | null) => void
   setIsPro: (isPro: boolean) => void
+  setDisplayName: (name: string) => void
+  /** One-shot: only applies if the user hasn't set/edited a name yet. */
+  prefillFromTelegram: (name: string, username: string | null) => void
+  completeTour: () => void
 }
 
 const AppStateContext = createContext<AppState | null>(null)
@@ -89,6 +103,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setLanguage: (language) => patch({ language }),
     setGoalWeightKg: (goalWeightKg) => patch({ goalWeightKg }),
     setIsPro: (isPro) => patch({ isPro }),
+    setDisplayName: (displayName) => patch({ displayName }),
+    prefillFromTelegram: (name, username) =>
+      patch((prev) =>
+        prev.telegramPrefillDone
+          ? {}
+          : { displayName: prev.displayName || name, telegramUsername: username, telegramPrefillDone: true },
+      ),
+    completeTour: () => patch({ tourSeen: true }),
   }
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>
