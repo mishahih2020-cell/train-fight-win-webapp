@@ -87,6 +87,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const patch = (updater: Partial<PersistedState> | ((prev: PersistedState) => Partial<PersistedState>)) => {
     setState((prev) => {
       const partial = typeof updater === 'function' ? updater(prev) : updater
+      // Bail out (same reference) when nothing actually changed — a
+      // same-content-but-new-object `next` would still re-render every
+      // consumer and recreate the context value, which can turn a "one-shot
+      // if not already done" updater into an infinite update loop wherever
+      // it's called from an effect keyed on that updater's identity.
+      const prevRecord = prev as unknown as Record<string, unknown>
+      const changed = Object.keys(partial).some((k) => (partial as Record<string, unknown>)[k] !== prevRecord[k])
+      if (!changed) return prev
       const next = { ...prev, ...partial }
       writePersisted(next)
       return next

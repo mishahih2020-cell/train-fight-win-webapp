@@ -29,7 +29,13 @@ function useTelegramIdentityPrefill() {
     const user = window.Telegram?.WebApp?.initDataUnsafe?.user
     if (!user?.first_name) return
     prefillFromTelegram(user.first_name, user.username ? `@${user.username}` : null)
-  }, [prefillFromTelegram])
+    // Run once on mount only. `prefillFromTelegram` is a new function
+    // identity on every AppStateProvider render (its context value isn't
+    // memoized), so depending on it here would re-fire this effect after
+    // every state update — including the one this effect itself causes —
+    // an infinite update loop that hard-locks the app on a blank screen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 }
 
 function useTelegramInit() {
