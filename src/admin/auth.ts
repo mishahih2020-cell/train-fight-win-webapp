@@ -1,10 +1,30 @@
+import { API_BASE, apiUrl } from '@/lib/apiClient'
+
 const SESSION_KEY = 'mfc-admin-authed'
 
-// TEMP, client-side-only gate: there's no server yet, so this can't be real
-// security — the password is visible to anyone who opens the bundle in
-// devtools. Move this to a real server-side session once one exists (see
-// src/db/README.md). Do not put anything actually sensitive behind it.
+// TEMP, client-side-only gate — only used as a fallback while no backend
+// is configured yet (current production build). The password is visible to
+// anyone who opens the bundle in devtools; once VITE_API_BASE_URL is set,
+// `login()` below calls the real server-side session instead (see
+// server/src/routes/admin.ts) and this constant stops being used at all.
 export const ADMIN_PASSWORD = '2617'
+
+/** Real check when a backend is configured, the old client-only one otherwise. */
+export async function login(password: string): Promise<boolean> {
+  if (!API_BASE) {
+    const ok = password === ADMIN_PASSWORD
+    if (ok) setAdminAuthed()
+    return ok
+  }
+  const res = await fetch(apiUrl('/api/admin/login'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ password }),
+  })
+  if (res.ok) setAdminAuthed()
+  return res.ok
+}
 
 export function isAdminAuthed() {
   try {
@@ -27,5 +47,8 @@ export function clearAdminAuthed() {
     sessionStorage.removeItem(SESSION_KEY)
   } catch {
     // ignore
+  }
+  if (API_BASE) {
+    void fetch(apiUrl('/api/admin/logout'), { method: 'POST', credentials: 'include' })
   }
 }

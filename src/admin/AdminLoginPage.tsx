@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
-import { ADMIN_PASSWORD, setAdminAuthed } from './auth'
+import { API_BASE } from '@/lib/apiClient'
+import { login } from './auth'
 
 export function AdminLoginPage() {
   const navigate = useNavigate()
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
 
-  const submit = () => {
-    if (password === ADMIN_PASSWORD) {
-      setAdminAuthed()
+  const submit = async () => {
+    const ok = await login(password)
+    if (ok) {
       navigate('/admin/dashboard')
     } else {
       setError(true)
@@ -47,7 +48,9 @@ export function AdminLoginPage() {
         </Button>
 
         <p className="text-caption mt-6 text-center text-[var(--color-text-tertiary)]">
-          Временная защита паролем на стороне клиента — не для реальных платёжных данных, пока нет сервера.
+          {API_BASE
+            ? 'Пароль проверяется на сервере.'
+            : 'Временная защита паролем на стороне клиента — не для реальных платёжных данных, пока нет сервера.'}
         </p>
       </div>
     </div>

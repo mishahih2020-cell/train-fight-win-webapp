@@ -57,6 +57,10 @@ declare global {
         initDataUnsafe?: {
           user?: TelegramUser
         }
+        // The raw, signed query-string version of the above — this is what
+        // actually gets checked against the bot token server-side. See
+        // src/lib/apiClient.ts / server/src/lib/telegramAuth.ts.
+        initData?: string
       }
     }
   }
