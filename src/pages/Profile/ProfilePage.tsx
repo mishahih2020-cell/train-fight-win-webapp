@@ -6,6 +6,7 @@ import {
   HelpCircle,
   Pencil,
   Settings as SettingsIcon,
+  Shield,
   ShoppingBag,
   Star,
   Target,
@@ -36,7 +37,10 @@ import type { Goal } from '@/types'
 
 type ModalKind = 'orders' | 'promo' | 'subscription' | 'settings' | 'goals' | 'editName' | null
 
-const ROUTES: Record<string, string> = { s1: '/profile-setup', s3: '/courses', s6: '/wheel', s9: '/nutrition' }
+const ROUTES: Record<string, string> = { s1: '/profile-setup', s3: '/courses', s6: '/wheel', s9: '/nutrition', s10: '/admin' }
+
+/** Only this account sees the admin-panel entry in the menu — see ProfilePage's `menuItems`. */
+const ADMIN_TELEGRAM_USERNAME = '@romanizmylove'
 const MODALS: Record<string, Exclude<ModalKind, null>> = { s2: 'goals', s4: 'orders', s5: 'promo', s7: 'subscription', s8: 'settings' }
 
 const GOAL_KEYS: Goal[] = ['fight', 'loseWeight', 'gainMass', 'generalFitness']
@@ -109,6 +113,14 @@ export function ProfilePage() {
     { id: 'workouts', label: t('profile.workouts'), value: `${workoutLog.length}` },
     { id: 'weight', label: t('profile.weight'), value: currentWeight ? `${currentWeight.toFixed(0)} ${t('common.kg')}` : '—' },
   ]
+
+  const menuItems = useMemo(
+    () =>
+      telegramUsername?.toLowerCase() === ADMIN_TELEGRAM_USERNAME.toLowerCase()
+        ? [...SETTINGS_ITEMS, { id: 's10', label: 'profile.item.admin' as const, icon: Shield, badge: undefined }]
+        : SETTINGS_ITEMS,
+    [telegramUsername],
+  )
 
   const openItem = (id: string) => {
     const to = ROUTES[id]
@@ -191,7 +203,7 @@ export function ProfilePage() {
       </div>
 
       <div ref={menuRef} className="mt-5 flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)]">
-        {SETTINGS_ITEMS.map((item, i) => {
+        {menuItems.map((item, i) => {
           const Icon = item.icon
           const badge = item.id === 's6' ? String(bonusBalance) : item.badge
           return (
@@ -199,7 +211,7 @@ export function ProfilePage() {
               key={item.id}
               onClick={() => openItem(item.id)}
               className={`press flex h-14 items-center gap-3 px-4 text-left ${
-                i !== SETTINGS_ITEMS.length - 1 ? 'border-b border-[var(--color-divider)]' : ''
+                i !== menuItems.length - 1 ? 'border-b border-[var(--color-divider)]' : ''
               }`}
             >
               <Icon className="h-5 w-5 text-[var(--color-text-secondary)]" />

@@ -10,7 +10,7 @@ import { USER } from '@/data/mock'
 import type { ChatMessageData } from '@/types'
 
 type Phase = 'splash' | 'chat' | 'reward'
-const TYPING_DELAY_MS = 900
+const TYPING_DELAY_MS = 2200
 
 /**
  * One-time animated entrance shown right after profile setup, before Home:
@@ -97,8 +97,7 @@ export function WelcomePage() {
 
       {phase === 'reward' && (
         <div className="animate-scale-in flex w-full max-w-sm flex-col items-center text-center">
-          <div className="text-h1 text-[var(--color-text)]">{t('welcome.rewardTitle')}</div>
-          <p className="text-body-secondary mt-2 text-[var(--color-text-secondary)]">{t('welcome.rewardBody')}</p>
+          <p className="text-body-secondary text-[var(--color-text-secondary)]">{t('welcome.rewardBody')}</p>
           <Button variant="primary" size="large" className="mt-8" onClick={() => navigate('/profile-setup')}>
             {t('welcome.enter')}
           </Button>

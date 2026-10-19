@@ -41,9 +41,17 @@ async function checkForUpdate() {
   }
 }
 
+const POLL_INTERVAL_MS = 3 * 60 * 1000
+
 export function initVersionCheck() {
   checkForUpdate()
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') checkForUpdate()
   })
+  // Also poll periodically while the app stays open in the foreground —
+  // visibilitychange alone only catches re-opens, not a long session that's
+  // never backgrounded (e.g. left on a workout screen for a while).
+  setInterval(() => {
+    if (document.visibilityState === 'visible') checkForUpdate()
+  }, POLL_INTERVAL_MS)
 }
