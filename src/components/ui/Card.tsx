@@ -1,7 +1,8 @@
-import type { HTMLAttributes } from 'react'
+import type { HTMLAttributes, Ref } from 'react'
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padded?: boolean
+  ref?: Ref<HTMLDivElement>
 }
 
 export function Card({ padded = true, className = '', children, ...rest }: CardProps) {

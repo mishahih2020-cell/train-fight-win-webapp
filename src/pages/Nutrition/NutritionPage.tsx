@@ -1,12 +1,14 @@
-import { Calendar, Camera } from 'lucide-react'
+import { Calendar, Camera, HelpCircle } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { CalorieRing, LineChart } from '@/components/ui/Chart'
 import { Card } from '@/components/ui/Card'
+import { IconButton } from '@/components/ui/IconButton'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { Tabs } from '@/components/ui/Tabs'
+import { OnboardingTour, type TourStep } from '@/components/onboarding/OnboardingTour'
 import { FoodCard } from '@/components/cards/FoodCard'
 import { MealEditModal } from '@/components/cards/MealEditModal'
 import { mealsRepo } from '@/db/repos'
@@ -40,7 +42,7 @@ const MACRO_DEFS = [
 
 export function NutritionPage() {
   const navigate = useNavigate()
-  const { profile, language } = useAppState()
+  const { profile, language, tours, completeTour } = useAppState()
   const { t } = useT()
   const [tab, setTab] = useState<'today' | 'analytics'>('today')
   const { items: meals, reload } = useRepoList(mealsRepo)
@@ -52,6 +54,20 @@ export function NutritionPage() {
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null)
   const [viewDate, setViewDate] = useState<string | null>(null)
   const weeksScrollRef = useRef<HTMLDivElement>(null)
+  const [tourForced, setTourForced] = useState(false)
+  const calorieCardRef = useRef<HTMLDivElement>(null)
+  const photoButtonRef = useRef<HTMLButtonElement>(null)
+  const mealListRef = useRef<HTMLDivElement>(null)
+  const calendarButtonRef = useRef<HTMLButtonElement>(null)
+  const tourSteps = useMemo<TourStep[]>(
+    () => [
+      { titleKey: 'tour.nutrition.step1Title', bodyKey: 'tour.nutrition.step1Body', target: calorieCardRef },
+      { titleKey: 'tour.nutrition.step2Title', bodyKey: 'tour.nutrition.step2Body', target: photoButtonRef },
+      { titleKey: 'tour.nutrition.step3Title', bodyKey: 'tour.nutrition.step3Body', target: mealListRef },
+      { titleKey: 'tour.nutrition.step4Title', bodyKey: 'tour.nutrition.step4Body', target: calendarButtonRef },
+    ],
+    [],
+  )
 
   const today = new Date().toISOString().slice(0, 10)
   const todayMeals = useMemo(() => meals.filter((m) => m.date === today).sort((a, b) => a.time.localeCompare(b.time)), [meals, today])
@@ -119,13 +135,26 @@ export function NutritionPage() {
     <div className="safe-top px-4 pt-4">
       <div className="flex items-center justify-between">
         <h1 className="text-h1 text-[var(--color-text)]">{t('nutrition.title')}</h1>
-        <button
-          onClick={() => navigate('/nutrition/calendar')}
-          aria-label={t('nutrition.calendar')}
-          className="press flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-divider)] bg-[var(--color-card)]"
-        >
-          <Calendar className="h-4 w-4 text-[var(--color-text-secondary)]" />
-        </button>
+        <div className="flex items-center gap-2">
+          <IconButton
+            variant="card"
+            aria-label={t('tour.help')}
+            onClick={() => {
+              setTab('today')
+              setTourForced(true)
+            }}
+          >
+            <HelpCircle className="h-4 w-4" />
+          </IconButton>
+          <button
+            ref={calendarButtonRef}
+            onClick={() => navigate('/nutrition/calendar')}
+            aria-label={t('nutrition.calendar')}
+            className="press flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-divider)] bg-[var(--color-card)]"
+          >
+            <Calendar className="h-4 w-4 text-[var(--color-text-secondary)]" />
+          </button>
+        </div>
       </div>
 
       <div className="mt-4">
@@ -134,7 +163,7 @@ export function NutritionPage() {
 
       {tab === 'today' ? (
         <>
-          <Card className="mt-4 flex items-center gap-4">
+          <Card ref={calorieCardRef} className="mt-4 flex items-center gap-4">
             <CalorieRing current={caloriesEaten} total={calorieTarget} lang={language} />
             <div className="flex flex-1 flex-col gap-2.5">
               {macrosEaten.map((m) => (
@@ -164,6 +193,7 @@ export function NutritionPage() {
             }}
           />
           <button
+            ref={photoButtonRef}
             onClick={() => fileInputRef.current?.click()}
             className="press text-body-secondary mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-button)] border border-[var(--color-divider)] bg-[var(--color-card)] font-semibold text-[var(--color-text)]"
           >
@@ -171,15 +201,21 @@ export function NutritionPage() {
             {t('nutrition.photoButton')}
           </button>
 
-          <div className="mt-5 flex flex-col gap-2.5">
-            {todayMeals.map((meal, i) => (
-              <FoodCard
-                key={meal.id}
-                meal={meal}
-                onClick={() => setEditingMeal(meal)}
-                onAdd={i === todayMeals.length - 1 ? () => fileInputRef.current?.click() : undefined}
-              />
-            ))}
+          <div ref={mealListRef} className="mt-5 flex flex-col gap-2.5">
+            {todayMeals.length > 0 ? (
+              todayMeals.map((meal, i) => (
+                <FoodCard
+                  key={meal.id}
+                  meal={meal}
+                  onClick={() => setEditingMeal(meal)}
+                  onAdd={i === todayMeals.length - 1 ? () => fileInputRef.current?.click() : undefined}
+                />
+              ))
+            ) : (
+              <div className="text-body-secondary rounded-[var(--radius-card)] border border-dashed border-[var(--color-divider)] p-6 text-center text-[var(--color-text-secondary)]">
+                {t('nutrition.todayEmpty')}
+              </div>
+            )}
           </div>
         </>
       ) : (
@@ -281,6 +317,16 @@ export function NutritionPage() {
       </Modal>
 
       <MealEditModal key={editingMeal?.id ?? 'none'} meal={editingMeal} unit={unit} onClose={() => setEditingMeal(null)} onChanged={reload} />
+
+      {tab === 'today' && (tourForced || !tours.nutrition) && (
+        <OnboardingTour
+          steps={tourSteps}
+          onDone={() => {
+            completeTour('nutrition')
+            setTourForced(false)
+          }}
+        />
+      )}
     </div>
   )
 }

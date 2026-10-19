@@ -1,9 +1,10 @@
-import { Flame } from 'lucide-react'
+import { Flame, HelpCircle } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { IconButton } from '@/components/ui/IconButton'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Sparkline } from '@/components/ui/Chart'
 import { OnboardingTour, type TourStep } from '@/components/onboarding/OnboardingTour'
@@ -20,10 +21,11 @@ import { formatRelativeDate, summarizeWeight } from '@/lib/weight'
 
 export function HomePage() {
   const navigate = useNavigate()
-  const { profile, language, displayName, tourSeen, completeTour } = useAppState()
+  const { profile, language, displayName, tours, completeTour } = useAppState()
   const { t, tn } = useT()
   const weekDays = useMemo(() => buildCurrentWeek(language, WEEK_PLAN), [language])
   const [selectedDayNumber, setSelectedDayNumber] = useState<number | null>(null)
+  const [tourForced, setTourForced] = useState(false)
   const weekRef = useRef<HTMLDivElement>(null)
   const statsRef = useRef<HTMLDivElement>(null)
   const trialRef = useRef<HTMLDivElement>(null)
@@ -59,9 +61,14 @@ export function HomePage() {
         <h1 className="text-h1 text-[var(--color-text)]">
           {t('home.greeting')}, {displayName || USER.firstName}!
         </h1>
-        <button ref={avatarRef} onClick={() => navigate('/profile')} aria-label={t('nav.profile')} className="press">
-          <Avatar size={44} />
-        </button>
+        <div className="flex items-center gap-2">
+          <IconButton variant="card" aria-label={t('tour.help')} onClick={() => setTourForced(true)}>
+            <HelpCircle className="h-4 w-4" />
+          </IconButton>
+          <button ref={avatarRef} onClick={() => navigate('/profile')} aria-label={t('nav.profile')} className="press">
+            <Avatar size={44} />
+          </button>
+        </div>
       </div>
 
       <div ref={weekRef} className="mt-5 flex justify-between">
@@ -186,7 +193,15 @@ export function HomePage() {
 
       <div className="h-4" />
 
-      {!tourSeen && <OnboardingTour steps={tourSteps} onDone={completeTour} />}
+      {(tourForced || !tours.home) && (
+        <OnboardingTour
+          steps={tourSteps}
+          onDone={() => {
+            completeTour('home')
+            setTourForced(false)
+          }}
+        />
+      )}
     </div>
   )
 }

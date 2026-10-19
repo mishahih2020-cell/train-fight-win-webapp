@@ -27,7 +27,8 @@ interface PersistedState {
   telegramUsername: string | null
   /** Guards the one-time Telegram prefill so it never overwrites a name the user already edited. */
   telegramPrefillDone: boolean
-  tourSeen: boolean
+  /** One flag per screen's coach-mark tour, e.g. tours.home, tours.workouts. */
+  tours: Record<string, boolean>
 }
 
 const DEFAULT_STATE: PersistedState = {
@@ -44,7 +45,7 @@ const DEFAULT_STATE: PersistedState = {
   displayName: '',
   telegramUsername: null,
   telegramPrefillDone: false,
-  tourSeen: false,
+  tours: {},
 }
 
 // Telegram's in-app browser can restrict storage access in rare/older
@@ -53,7 +54,17 @@ const DEFAULT_STATE: PersistedState = {
 function readPersisted(): Partial<PersistedState> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : {}
+    if (!raw) return {}
+    const parsed = JSON.parse(raw) as Partial<PersistedState> & { tourSeen?: boolean }
+    // Migrate the old single-screen `tourSeen` flag (pre-dating per-screen
+    // tours) into the home tour's entry, so existing users who already saw
+    // the Home tour don't see it replayed, while every other screen's tour
+    // still plays once for them.
+    if (parsed.tourSeen !== undefined && !parsed.tours) {
+      parsed.tours = { home: parsed.tourSeen }
+    }
+    delete parsed.tourSeen
+    return parsed
   } catch {
     return {}
   }
@@ -79,7 +90,7 @@ interface AppState extends PersistedState {
   setDisplayName: (name: string) => void
   /** One-shot: only applies if the user hasn't set/edited a name yet. */
   prefillFromTelegram: (name: string, username: string | null) => void
-  completeTour: () => void
+  completeTour: (id: string) => void
 }
 
 const AppStateContext = createContext<AppState | null>(null)
@@ -121,7 +132,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           ? {}
           : { displayName: prev.displayName || name, telegramUsername: username, telegramPrefillDone: true },
       ),
-    completeTour: () => patch({ tourSeen: true }),
+    completeTour: (id) => patch((prev) => ({ tours: { ...prev.tours, [id]: true } })),
   }
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>

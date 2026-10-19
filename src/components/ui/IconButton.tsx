@@ -1,9 +1,10 @@
-import type { ButtonHTMLAttributes, MouseEvent } from 'react'
+import type { ButtonHTMLAttributes, MouseEvent, Ref } from 'react'
 import { haptic } from '@/lib/haptics'
 
 interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: number
   variant?: 'card' | 'ghost' | 'accent'
+  ref?: Ref<HTMLButtonElement>
 }
 
 const VARIANT_CLASSES: Record<NonNullable<IconButtonProps['variant']>, string> = {

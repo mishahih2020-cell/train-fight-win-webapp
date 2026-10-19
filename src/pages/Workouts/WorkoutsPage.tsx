@@ -1,10 +1,12 @@
-import { Timer as TimerIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { HelpCircle, Timer as TimerIcon } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
+import { IconButton } from '@/components/ui/IconButton'
 import { Chips } from '@/components/ui/Tabs'
 import { Modal } from '@/components/ui/Modal'
 import { Stepper, formatMMSS } from '@/components/ui/Stepper'
+import { OnboardingTour, type TourStep } from '@/components/onboarding/OnboardingTour'
 import { WorkoutCard } from '@/components/cards/WorkoutCard'
 import { WORKOUT_CATEGORIES } from '@/data/mock'
 import { workoutsRepo } from '@/db/repos'
@@ -19,7 +21,7 @@ import type { SavedWorkout } from '@/types'
 
 export function WorkoutsPage() {
   const navigate = useNavigate()
-  const { language } = useAppState()
+  const { language, tours, completeTour } = useAppState()
   const { t, tn } = useT()
   const [category, setCategory] = useState<(typeof WORKOUT_CATEGORIES)[number]>('all')
   const { items: workouts } = useRepoList(workoutsRepo)
@@ -27,6 +29,20 @@ export function WorkoutsPage() {
   const [rounds, setRounds] = useState(DEFAULT_ROUNDS)
   const [roundSec, setRoundSec] = useState(DEFAULT_ROUND_SEC)
   const [restSec, setRestSec] = useState(DEFAULT_REST_SEC)
+  const [tourForced, setTourForced] = useState(false)
+  const categoriesRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+  const createRef = useRef<HTMLButtonElement>(null)
+  const quickTimerRef = useRef<HTMLButtonElement>(null)
+  const tourSteps = useMemo<TourStep[]>(
+    () => [
+      { titleKey: 'tour.workouts.step1Title', bodyKey: 'tour.workouts.step1Body', target: categoriesRef },
+      { titleKey: 'tour.workouts.step2Title', bodyKey: 'tour.workouts.step2Body', target: listRef },
+      { titleKey: 'tour.workouts.step3Title', bodyKey: 'tour.workouts.step3Body', target: createRef },
+      { titleKey: 'tour.workouts.step4Title', bodyKey: 'tour.workouts.step4Body', target: quickTimerRef },
+    ],
+    [],
+  )
 
   const filtered = useMemo(
     () => [...workouts]
@@ -56,13 +72,18 @@ export function WorkoutsPage() {
 
   return (
     <div className="safe-top px-4 pt-4">
-      <h1 className="text-h1 text-[var(--color-text)]">{t('workouts.title')}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-h1 text-[var(--color-text)]">{t('workouts.title')}</h1>
+        <IconButton variant="card" aria-label={t('tour.help')} onClick={() => setTourForced(true)}>
+          <HelpCircle className="h-4 w-4" />
+        </IconButton>
+      </div>
 
-      <div className="mt-4">
+      <div ref={categoriesRef} className="mt-4">
         <Chips options={WORKOUT_CATEGORIES} value={category} onChange={setCategory} labelFor={(c) => t(`workouts.category.${c}`)} />
       </div>
 
-      <div className="mt-4 flex flex-col gap-3">
+      <div ref={listRef} className="mt-4 flex flex-col gap-3">
         {filtered.length > 0 ? (
           filtered.map((w) => (
             <WorkoutCard
@@ -80,11 +101,12 @@ export function WorkoutsPage() {
         )}
       </div>
 
-      <Button variant="primary" className="mt-5" onClick={() => navigate('/workouts/new')}>
+      <Button ref={createRef} variant="primary" className="mt-5" onClick={() => navigate('/workouts/new')}>
         {t('workouts.create')}
       </Button>
 
       <button
+        ref={quickTimerRef}
         onClick={() => setQuickTimerOpen(true)}
         className="press text-body-secondary mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-button)] border border-[var(--color-divider)] bg-[var(--color-card)] font-semibold text-[var(--color-text)]"
       >
@@ -121,6 +143,16 @@ export function WorkoutsPage() {
           {t('home.startWorkout')}
         </Button>
       </Modal>
+
+      {(tourForced || !tours.workouts) && (
+        <OnboardingTour
+          steps={tourSteps}
+          onDone={() => {
+            completeTour('workouts')
+            setTourForced(false)
+          }}
+        />
+      )}
     </div>
   )
 }

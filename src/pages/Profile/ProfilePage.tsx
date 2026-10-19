@@ -3,6 +3,7 @@ import {
   ChevronRight,
   Gift,
   GraduationCap,
+  HelpCircle,
   Pencil,
   Settings as SettingsIcon,
   ShoppingBag,
@@ -11,7 +12,7 @@ import {
   Ticket,
   User,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { IconButton } from '@/components/ui/IconButton'
@@ -20,6 +21,7 @@ import { Modal } from '@/components/ui/Modal'
 import { PlaceholderImage } from '@/components/ui/PlaceholderImage'
 import { Select, type SelectOption } from '@/components/ui/Select'
 import { Switch } from '@/components/ui/Switch'
+import { OnboardingTour, type TourStep } from '@/components/onboarding/OnboardingTour'
 import { useAppState } from '@/context/AppStateContext'
 import { useT } from '@/i18n/useT'
 import { USER } from '@/data/mock'
@@ -67,6 +69,8 @@ export function ProfilePage() {
     displayName,
     setDisplayName,
     telegramUsername,
+    tours,
+    completeTour,
   } = useAppState()
   const { t } = useT()
   const [modal, setModal] = useState<ModalKind>(null)
@@ -76,6 +80,20 @@ export function ProfilePage() {
   const [resetConfirming, setResetConfirming] = useState(false)
   const [goalForm, setGoalForm] = useState({ goal: profile.goal, targetWeight: goalWeightKg != null ? String(goalWeightKg) : '' })
   const [nameDraft, setNameDraft] = useState(displayName || USER.firstName)
+  const [tourForced, setTourForced] = useState(false)
+  const nameRef = useRef<HTMLButtonElement>(null)
+  const statsRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const settingsRef = useRef<HTMLButtonElement>(null)
+  const tourSteps = useMemo<TourStep[]>(
+    () => [
+      { titleKey: 'tour.profile.step1Title', bodyKey: 'tour.profile.step1Body', target: nameRef },
+      { titleKey: 'tour.profile.step2Title', bodyKey: 'tour.profile.step2Body', target: statsRef },
+      { titleKey: 'tour.profile.step3Title', bodyKey: 'tour.profile.step3Body', target: menuRef },
+      { titleKey: 'tour.profile.step4Title', bodyKey: 'tour.profile.step4Body', target: settingsRef },
+    ],
+    [],
+  )
 
   const { items: orders } = useRepoList(ordersRepo)
   const { items: weightEntries } = useRepoList(weightRepo)
@@ -139,14 +157,19 @@ export function ProfilePage() {
     <div className="safe-top px-4 pt-4">
       <div className="flex items-center justify-between">
         <h1 className="text-h1 text-[var(--color-text)]">{t('profile.title')}</h1>
-        <IconButton variant="card" aria-label={t('profile.settings')} onClick={() => setModal('settings')}>
-          <SettingsIcon className="h-5 w-5" />
-        </IconButton>
+        <div className="flex items-center gap-2">
+          <IconButton variant="card" aria-label={t('tour.help')} onClick={() => setTourForced(true)}>
+            <HelpCircle className="h-4 w-4" />
+          </IconButton>
+          <IconButton ref={settingsRef} variant="card" aria-label={t('profile.settings')} onClick={() => setModal('settings')}>
+            <SettingsIcon className="h-5 w-5" />
+          </IconButton>
+        </div>
       </div>
 
       <div className="mt-5 flex flex-col items-center text-center">
         <PlaceholderImage className="h-24 w-24" rounded="rounded-full" />
-        <button onClick={openEditName} className="press mt-3 flex items-center gap-2">
+        <button ref={nameRef} onClick={openEditName} className="press mt-3 flex items-center gap-2">
           <span className="text-h2 text-[var(--color-text)]">{displayName || USER.firstName}</span>
           {isPro && (
             <span className="text-caption rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-2 py-0.5 font-bold text-white">
@@ -158,7 +181,7 @@ export function ProfilePage() {
         <span className="text-body-secondary text-[var(--color-text-secondary)]">{telegramUsername || USER.username}</span>
       </div>
 
-      <div className="mt-5 grid grid-cols-3 gap-3">
+      <div ref={statsRef} className="mt-5 grid grid-cols-3 gap-3">
         {profileStats.map((s) => (
           <div key={s.id} className="rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)] p-3 text-center">
             <div className="text-h2 text-[var(--color-text)]">{s.value}</div>
@@ -167,7 +190,7 @@ export function ProfilePage() {
         ))}
       </div>
 
-      <div className="mt-5 flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)]">
+      <div ref={menuRef} className="mt-5 flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-divider)] bg-[var(--color-card)]">
         {SETTINGS_ITEMS.map((item, i) => {
           const Icon = item.icon
           const badge = item.id === 's6' ? String(bonusBalance) : item.badge
@@ -380,6 +403,16 @@ export function ProfilePage() {
           {t('common.done')}
         </Button>
       </Modal>
+
+      {(tourForced || !tours.profile) && (
+        <OnboardingTour
+          steps={tourSteps}
+          onDone={() => {
+            completeTour('profile')
+            setTourForced(false)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -1,9 +1,11 @@
-import { Lock, Send } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { HelpCircle, Lock, Send } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ChatMessage } from '@/components/ui/ChatMessage'
+import { IconButton } from '@/components/ui/IconButton'
+import { OnboardingTour, type TourStep } from '@/components/onboarding/OnboardingTour'
 import { useAppState } from '@/context/AppStateContext'
 import { useT } from '@/i18n/useT'
 import { weightRepo, workoutLogRepo } from '@/db/repos'
@@ -22,11 +24,23 @@ const QUICK_ACTION_KEYS: Record<string, 'aiCoach.quick.plan' | 'aiCoach.quick.nu
 }
 
 function AICoachPaywall() {
-  const { setIsPro } = useAppState()
+  const { setIsPro, tours, completeTour } = useAppState()
   const { t } = useT()
+  const [tourForced, setTourForced] = useState(false)
+  const ctaRef = useRef<HTMLButtonElement>(null)
+  const tourSteps = useMemo<TourStep[]>(
+    () => [{ titleKey: 'tour.aiCoachLocked.step1Title', bodyKey: 'tour.aiCoachLocked.step1Body', target: ctaRef }],
+    [],
+  )
+
   return (
     <div className="safe-top px-4 pt-4">
-      <h1 className="text-h1 text-[var(--color-text)]">{t('aiCoach.title')}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-h1 text-[var(--color-text)]">{t('aiCoach.title')}</h1>
+        <IconButton variant="card" aria-label={t('tour.help')} onClick={() => setTourForced(true)}>
+          <HelpCircle className="h-4 w-4" />
+        </IconButton>
+      </div>
 
       <Card className="mt-4 flex items-center gap-3">
         <Avatar size={44} />
@@ -49,25 +63,45 @@ function AICoachPaywall() {
           <li>• {t('aiCoach.quick.progress')}</li>
         </ul>
 
-        <Button variant="primary" className="mt-6" onClick={() => setIsPro(true)}>
+        <Button ref={ctaRef} variant="primary" className="mt-6" onClick={() => setIsPro(true)}>
           {t('aiCoach.lockedCta', { price: t('profile.subscription.price') })}
         </Button>
         <p className="text-caption mt-3 text-[var(--color-text-tertiary)]">{t('profile.subscription.testNote')}</p>
       </div>
 
       <div className="h-4" />
+
+      {(tourForced || !tours.aiCoachLocked) && (
+        <OnboardingTour
+          steps={tourSteps}
+          onDone={() => {
+            completeTour('aiCoachLocked')
+            setTourForced(false)
+          }}
+        />
+      )}
     </div>
   )
 }
 
 export function AICoachPage() {
-  const { profile, language, isPro } = useAppState()
+  const { profile, language, isPro, tours, completeTour } = useAppState()
   const { t } = useT()
   const { items: weightEntries } = useRepoList(weightRepo)
   const { items: workoutLog } = useRepoList(workoutLogRepo)
   const [extraMessages, setExtraMessages] = useState<ChatMessageData[]>([])
   const [draft, setDraft] = useState('')
   const [typing, setTyping] = useState(false)
+  const [tourForced, setTourForced] = useState(false)
+  const quickActionsRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLDivElement>(null)
+  const tourSteps = useMemo<TourStep[]>(
+    () => [
+      { titleKey: 'tour.aiCoach.step1Title', bodyKey: 'tour.aiCoach.step1Body', target: quickActionsRef },
+      { titleKey: 'tour.aiCoach.step2Title', bodyKey: 'tour.aiCoach.step2Body', target: inputRef },
+    ],
+    [],
+  )
 
   const context = useMemo(() => {
     const weight = summarizeWeight(weightEntries, profile.goal, language)
@@ -113,7 +147,12 @@ export function AICoachPage() {
 
   return (
     <div className="safe-top px-4 pt-4">
-      <h1 className="text-h1 text-[var(--color-text)]">{t('aiCoach.title')}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-h1 text-[var(--color-text)]">{t('aiCoach.title')}</h1>
+        <IconButton variant="card" aria-label={t('tour.help')} onClick={() => setTourForced(true)}>
+          <HelpCircle className="h-4 w-4" />
+        </IconButton>
+      </div>
 
       <Card className="mt-4 flex items-center gap-3">
         <Avatar size={44} />
@@ -137,7 +176,7 @@ export function AICoachPage() {
         )}
       </div>
 
-      <div className="mt-4 flex flex-col gap-2">
+      <div ref={quickActionsRef} className="mt-4 flex flex-col gap-2">
         {QUICK_ACTION_IDS.map((id) => {
           const label = t(QUICK_ACTION_KEYS[id])
           return (
@@ -152,7 +191,7 @@ export function AICoachPage() {
         })}
       </div>
 
-      <div className="mt-4 flex items-center gap-2">
+      <div ref={inputRef} className="mt-4 flex items-center gap-2">
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -170,6 +209,16 @@ export function AICoachPage() {
       </div>
 
       <div className="h-4" />
+
+      {(tourForced || !tours.aiCoach) && (
+        <OnboardingTour
+          steps={tourSteps}
+          onDone={() => {
+            completeTour('aiCoach')
+            setTourForced(false)
+          }}
+        />
+      )}
     </div>
   )
 }

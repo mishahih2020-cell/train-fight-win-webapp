@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, MouseEvent, ReactNode, Ref } from 'react'
 import { haptic } from '@/lib/haptics'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'outline'
@@ -10,6 +10,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: Size
   icon?: ReactNode
   fullWidth?: boolean
+  /** React 19 lets plain function components accept a ref prop directly, no forwardRef needed. */
+  ref?: Ref<HTMLButtonElement>
 }
 
 const VARIANT_CLASSES: Record<Variant, string> = {
