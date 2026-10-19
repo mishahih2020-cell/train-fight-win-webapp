@@ -3,8 +3,21 @@ import { ordersRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 
 export function OrdersPage() {
-  const { items: orders } = useRepoList(ordersRepo)
+  const { items: orders, loaded, error, reload } = useRepoList(ordersRepo)
   const revenue = orders.reduce((sum, o) => sum + o.amount, 0)
+
+  if (!loaded) return null
+
+  if (error) {
+    return (
+      <div className="rounded-[var(--radius-card)] border border-[var(--color-accent)] bg-[var(--color-card)] p-4 text-center">
+        <p className="text-body-secondary text-[var(--color-text)]">Не получилось загрузить заказы.</p>
+        <button onClick={reload} className="text-caption mt-2 font-medium text-[var(--color-accent)] underline underline-offset-4">
+          Повторить
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div>

@@ -1,42 +1,74 @@
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { ConfirmDeleteButton } from '@/components/ui/ConfirmDeleteButton'
 import { Input } from '@/components/ui/Input'
 import { awardBonus, bonusLedgerRepo, wheelSegmentsRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 
 export function BonusesPage() {
-  const { items: ledger, reload: reloadLedger } = useRepoList(bonusLedgerRepo)
-  const { items: segments, reload: reloadSegments } = useRepoList(wheelSegmentsRepo)
+  const { items: ledger, loaded: ledgerLoaded, error: ledgerError, reload: reloadLedger } = useRepoList(bonusLedgerRepo)
+  const { items: segments, loaded: segmentsLoaded, error: segmentsError, reload: reloadSegments } = useRepoList(wheelSegmentsRepo)
   const [amount, setAmount] = useState(50)
   const [reason, setReason] = useState('Начислено вручную')
   const [newSegment, setNewSegment] = useState('')
+  const [awarding, setAwarding] = useState(false)
+  const [addingSegment, setAddingSegment] = useState(false)
 
   const balance = useMemo(() => ledger.reduce((sum, e) => sum + e.amount, 0), [ledger])
 
   const addManual = async () => {
-    if (!amount) return
-    await awardBonus(amount, reason || 'Начислено вручную')
-    reloadLedger()
+    if (!amount || awarding) return
+    setAwarding(true)
+    try {
+      await awardBonus(amount, reason || 'Начислено вручную')
+      reloadLedger()
+    } finally {
+      setAwarding(false)
+    }
   }
 
   const addSegment = async () => {
     const label = newSegment.trim()
-    if (!label || segments.length >= 8) return
-    await wheelSegmentsRepo.add({
-      id: `seg${Date.now()}`,
-      label,
-      color: segments.length % 2 === 0 ? 'accent' : 'card',
-    })
-    setNewSegment('')
-    reloadSegments()
+    if (!label || segments.length >= 8 || addingSegment) return
+    setAddingSegment(true)
+    try {
+      await wheelSegmentsRepo.add({
+        id: `seg${Date.now()}`,
+        label,
+        color: segments.length % 2 === 0 ? 'accent' : 'card',
+      })
+      setNewSegment('')
+      reloadSegments()
+    } finally {
+      setAddingSegment(false)
+    }
   }
 
   const removeSegment = async (id: string) => {
     if (segments.length <= 2) return
     await wheelSegmentsRepo.remove(id)
     reloadSegments()
+  }
+
+  if (!ledgerLoaded || !segmentsLoaded) return null
+
+  if (ledgerError || segmentsError) {
+    return (
+      <div className="rounded-[var(--radius-card)] border border-[var(--color-accent)] bg-[var(--color-card)] p-4 text-center">
+        <p className="text-body-secondary text-[var(--color-text)]">Не получилось загрузить бонусы.</p>
+        <button
+          onClick={() => {
+            reloadLedger()
+            reloadSegments()
+          }}
+          className="text-caption mt-2 font-medium text-[var(--color-accent)] underline underline-offset-4"
+        >
+          Повторить
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -54,7 +86,7 @@ export function BonusesPage() {
           <div className="flex-1">
             <Input label="Причина" value={reason} onChange={(e) => setReason(e.target.value)} />
           </div>
-          <Button variant="secondary" fullWidth={false} onClick={addManual}>
+          <Button variant="secondary" fullWidth={false} disabled={awarding || !amount} onClick={addManual}>
             Начислить
           </Button>
         </Card>
@@ -91,7 +123,7 @@ export function BonusesPage() {
             variant="secondary"
             fullWidth={false}
             icon={<Plus className="h-4 w-4" />}
-            disabled={segments.length >= 8}
+            disabled={segments.length >= 8 || addingSegment || !newSegment.trim()}
             onClick={addSegment}
           >
             Добавить
@@ -110,9 +142,11 @@ export function BonusesPage() {
                 />
                 <span className="text-body-secondary text-[var(--color-text)]">{s.label.replace('\n', ' ')}</span>
               </div>
-              <button onClick={() => removeSegment(s.id)} aria-label="Удалить сегмент" disabled={segments.length <= 2}>
-                <Trash2 className={`h-4 w-4 ${segments.length <= 2 ? 'text-[var(--color-text-tertiary)]' : 'text-[var(--color-accent)]'}`} />
-              </button>
+              <ConfirmDeleteButton
+                label="Удалить сегмент"
+                disabled={segments.length <= 2}
+                onConfirm={() => removeSegment(s.id)}
+              />
             </div>
           ))}
         </div>

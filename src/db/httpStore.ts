@@ -14,7 +14,8 @@ export function createHttpRepo<T extends { id: string }>(endpoint: string): Repo
   return {
     async list() {
       const res = await apiFetch(endpoint)
-      return res.ok ? json<T[]>(res) : []
+      if (!res.ok) throw new Error(`GET ${res.url} failed (${res.status})`)
+      return json<T[]>(res)
     },
     async get(id) {
       const rows = await this.list()
@@ -54,7 +55,8 @@ export function createCoursesHttpRepo<T extends { id: string }>(): Repo<T> {
   const repo: Repo<T> = {
     async list() {
       const res = await apiFetch('/api/courses')
-      return res.ok ? json<T[]>(res) : []
+      if (!res.ok) throw new Error(`GET ${res.url} failed (${res.status})`)
+      return json<T[]>(res)
     },
     async get(id) {
       const rows = await repo.list()
@@ -92,7 +94,8 @@ export function createWorkoutsHttpRepo<T extends { id: string }>(): Repo<T> {
   return {
     async list() {
       const res = await apiFetch('/api/workouts')
-      return res.ok ? json<T[]>(res) : []
+      if (!res.ok) throw new Error(`GET ${res.url} failed (${res.status})`)
+      return json<T[]>(res)
     },
     async get(id) {
       const rows = await this.list()
@@ -117,7 +120,8 @@ export function createWheelSegmentsHttpRepo<T extends { id: string }>(): Repo<T>
   return {
     async list() {
       const res = await apiFetch('/api/wheel-segments')
-      return res.ok ? json<T[]>(res) : []
+      if (!res.ok) throw new Error(`GET ${res.url} failed (${res.status})`)
+      return json<T[]>(res)
     },
     async get(id) {
       const rows = await this.list()
@@ -144,7 +148,8 @@ export function createPromoCodesHttpRepo<T extends { id: string }>(): Repo<T> {
   return {
     async list() {
       const res = await apiFetch('/api/promo-codes')
-      return res.ok ? json<T[]>(res) : []
+      if (!res.ok) throw new Error(`GET ${res.url} failed (${res.status})`)
+      return json<T[]>(res)
     },
     async get(id) {
       const rows = await this.list()
@@ -179,15 +184,21 @@ export function createOrdersHttpRepo<T extends { id: string }>(): Repo<T> {
   return {
     async list() {
       const res = await apiFetch('/api/orders')
-      return res.ok ? json<T[]>(res) : []
+      if (!res.ok) throw new Error(`GET ${res.url} failed (${res.status})`)
+      return json<T[]>(res)
     },
     async get(id) {
       const rows = await this.list()
       return rows.find((row) => row.id === id)
     },
     async add(row) {
+      // Throwing (rather than silently echoing `row` back) matters here
+      // specifically: this is a course purchase — a caller that doesn't
+      // check the result would otherwise think it succeeded and grant
+      // access to a course that was never actually recorded as bought.
       const res = await apiFetch('/api/orders', { method: 'POST', body: JSON.stringify(row) })
-      return res.ok ? json<T>(res) : row
+      if (!res.ok) throw new Error(`POST /api/orders failed (${res.status})`)
+      return json<T>(res)
     },
     async update() {
       return undefined

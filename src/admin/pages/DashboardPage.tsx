@@ -4,15 +4,39 @@ import { bonusLedgerRepo, coursesRepo, ordersRepo, promoCodesRepo, weightRepo, w
 import { useRepoList } from '@/db/useRepo'
 
 export function DashboardPage() {
-  const { items: orders } = useRepoList(ordersRepo)
-  const { items: courses } = useRepoList(coursesRepo)
-  const { items: workoutLog } = useRepoList(workoutLogRepo)
-  const { items: bonusLedger } = useRepoList(bonusLedgerRepo)
-  const { items: promoCodes } = useRepoList(promoCodesRepo)
-  const { items: weightEntries } = useRepoList(weightRepo)
+  const { items: orders, loaded: ordersLoaded, error: ordersError, reload: reloadOrders } = useRepoList(ordersRepo)
+  const { items: courses, loaded: coursesLoaded, error: coursesError, reload: reloadCourses } = useRepoList(coursesRepo)
+  const { items: workoutLog, loaded: workoutLogLoaded, error: workoutLogError, reload: reloadWorkoutLog } = useRepoList(workoutLogRepo)
+  const { items: bonusLedger, loaded: bonusLoaded, error: bonusError, reload: reloadBonus } = useRepoList(bonusLedgerRepo)
+  const { items: promoCodes, loaded: promoLoaded, error: promoError, reload: reloadPromo } = useRepoList(promoCodesRepo)
+  const { items: weightEntries, loaded: weightLoaded, error: weightError, reload: reloadWeight } = useRepoList(weightRepo)
+
+  const allLoaded = ordersLoaded && coursesLoaded && workoutLogLoaded && bonusLoaded && promoLoaded && weightLoaded
+  const anyError = ordersError || coursesError || workoutLogError || bonusError || promoError || weightError
+  const reloadAll = () => {
+    reloadOrders()
+    reloadCourses()
+    reloadWorkoutLog()
+    reloadBonus()
+    reloadPromo()
+    reloadWeight()
+  }
 
   const revenue = useMemo(() => orders.reduce((sum, o) => sum + o.amount, 0), [orders])
   const bonusBalance = useMemo(() => bonusLedger.reduce((sum, e) => sum + e.amount, 0), [bonusLedger])
+
+  if (!allLoaded) return null
+
+  if (anyError) {
+    return (
+      <div className="rounded-[var(--radius-card)] border border-[var(--color-accent)] bg-[var(--color-card)] p-4 text-center">
+        <p className="text-body-secondary text-[var(--color-text)]">Не получилось загрузить данные дашборда.</p>
+        <button onClick={reloadAll} className="text-caption mt-2 font-medium text-[var(--color-accent)] underline underline-offset-4">
+          Повторить
+        </button>
+      </div>
+    )
+  }
 
   const stats = [
     { label: 'Заказов', value: orders.length },

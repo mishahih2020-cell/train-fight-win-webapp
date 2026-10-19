@@ -20,6 +20,8 @@ export function CourseDetailPage() {
   const course = courses.find((c) => c.id === id)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [justBought, setJustBought] = useState(false)
+  const [purchasing, setPurchasing] = useState(false)
+  const [purchaseError, setPurchaseError] = useState(false)
 
   if (!course) {
     if (!loaded) return null
@@ -37,20 +39,32 @@ export function CourseDetailPage() {
   }
 
   const confirmPurchase = async () => {
-    await coursesRepo.update(course.id, { purchased: true, progress: 0 })
-    await ordersRepo.add({
-      id: `o${Date.now()}`,
-      courseId: course.id,
-      courseTitle: course.title,
-      amount: course.price,
-      date: new Date().toISOString().slice(0, 10),
-      status: course.price > 0 ? 'paid' : 'free',
-    })
-    await awardBonus(50, `Покупка курса «${course.title}»`)
-    addSpin(1)
-    setConfirmOpen(false)
-    setJustBought(true)
-    reload()
+    if (purchasing) return
+    setPurchasing(true)
+    setPurchaseError(false)
+    try {
+      await ordersRepo.add({
+        id: `o${Date.now()}`,
+        courseId: course.id,
+        courseTitle: course.title,
+        amount: course.price,
+        date: new Date().toISOString().slice(0, 10),
+        status: course.price > 0 ? 'paid' : 'free',
+      })
+      // Order recorded first — only mark the course purchased once that
+      // actually succeeded, so a failed request can't leave the course
+      // unlocked with nothing to show for it.
+      await coursesRepo.update(course.id, { purchased: true, progress: 0 })
+      await awardBonus(50, `Покупка курса «${course.title}»`)
+      addSpin(1)
+      setConfirmOpen(false)
+      setJustBought(true)
+      reload()
+    } catch {
+      setPurchaseError(true)
+    } finally {
+      setPurchasing(false)
+    }
   }
 
   const startCourseWorkout = () => {
@@ -113,7 +127,10 @@ export function CourseDetailPage() {
         <p className="text-caption mt-4 rounded-[var(--radius-button)] bg-[var(--color-card-2)] p-3 text-[var(--color-text-tertiary)]">
           {t('courses.testPurchaseNote')}
         </p>
-        <Button variant="primary" className="mt-5" onClick={confirmPurchase}>
+        {purchaseError && (
+          <p className="text-caption mt-3 font-medium text-[var(--color-accent)]">{t('courses.purchaseError')}</p>
+        )}
+        <Button variant="primary" className="mt-5" disabled={purchasing} onClick={confirmPurchase}>
           {course.price > 0 ? t('courses.buyFor', { price: course.price.toLocaleString(language === 'en' ? 'en-US' : 'ru-RU') }) : t('courses.getFree')}
         </Button>
       </Modal>

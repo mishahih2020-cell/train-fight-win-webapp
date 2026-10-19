@@ -16,14 +16,20 @@ export async function login(password: string): Promise<boolean> {
     if (ok) setAdminAuthed()
     return ok
   }
-  const res = await fetch(apiUrl('/api/admin/login'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ password }),
-  })
-  if (res.ok) setAdminAuthed()
-  return res.ok
+  try {
+    const res = await fetch(apiUrl('/api/admin/login'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ password }),
+    })
+    if (res.ok) setAdminAuthed()
+    return res.ok
+  } catch {
+    // Network/server unreachable — same "login failed" outcome the UI
+    // already shows for a wrong password, rather than an unhandled rejection.
+    return false
+  }
 }
 
 export function isAdminAuthed() {

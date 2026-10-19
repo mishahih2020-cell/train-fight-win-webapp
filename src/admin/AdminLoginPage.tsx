@@ -8,13 +8,20 @@ export function AdminLoginPage() {
   const navigate = useNavigate()
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   const submit = async () => {
-    const ok = await login(password)
-    if (ok) {
-      navigate('/admin/dashboard')
-    } else {
-      setError(true)
+    if (submitting || !password) return
+    setSubmitting(true)
+    try {
+      const ok = await login(password)
+      if (ok) {
+        navigate('/admin/dashboard')
+      } else {
+        setError(true)
+      }
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -29,7 +36,6 @@ export function AdminLoginPage() {
             <span className="text-body-secondary mb-2 block text-[var(--color-text-secondary)]">Пароль</span>
             <input
               type="password"
-              inputMode="numeric"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value)
@@ -43,8 +49,8 @@ export function AdminLoginPage() {
           {error && <p className="text-caption mt-2 font-medium text-[var(--color-accent)]">Неверный пароль</p>}
         </div>
 
-        <Button variant="primary" className="mt-6" onClick={submit}>
-          Войти
+        <Button variant="primary" className="mt-6" disabled={submitting || !password} onClick={submit}>
+          {submitting ? 'Входим…' : 'Войти'}
         </Button>
 
         <p className="text-caption mt-6 text-center text-[var(--color-text-tertiary)]">
