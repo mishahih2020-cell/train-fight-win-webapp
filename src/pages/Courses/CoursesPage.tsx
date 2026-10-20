@@ -1,5 +1,5 @@
 import { HelpCircle } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CourseCard } from '@/components/cards/CourseCard'
 import { IconButton } from '@/components/ui/IconButton'
@@ -9,6 +9,7 @@ import { useAppState } from '@/context/AppStateContext'
 import { coursesRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { useT } from '@/i18n/useT'
+import { track } from '@/lib/analytics'
 
 export function CoursesPage() {
   const navigate = useNavigate()
@@ -16,6 +17,10 @@ export function CoursesPage() {
   const { tours, completeTour } = useAppState()
   const [tab, setTab] = useState<'all' | 'mine'>('all')
   const { items: courses } = useRepoList(coursesRepo)
+
+  useEffect(() => {
+    track('course_list_view')
+  }, [])
   const [tourForced, setTourForced] = useState(false)
   const tabsRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)

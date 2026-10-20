@@ -3,13 +3,14 @@ import { clearAdminAuthed } from './auth'
 
 const LINKS = [
   { to: '/admin/dashboard', label: 'Дашборд' },
+  { to: '/admin/analytics', label: 'Аналитика' },
   { to: '/admin/courses', label: 'Курсы' },
   { to: '/admin/promo', label: 'Промокоды' },
   { to: '/admin/bonuses', label: 'Бонусы' },
   { to: '/admin/orders', label: 'Заказы' },
 ]
 
-const COMING_SOON = ['Пользователи', 'Рассылки', 'Оплаты', 'Подписки']
+const COMING_SOON = ['Пользователи', 'Оплаты', 'Подписки']
 
 export function AdminLayout() {
   const navigate = useNavigate()

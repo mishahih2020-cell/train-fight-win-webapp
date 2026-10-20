@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AdminLayout } from './AdminLayout'
 import { AdminLoginPage } from './AdminLoginPage'
 import { isAdminAuthed } from './auth'
+import { AnalyticsPage } from './pages/AnalyticsPage'
 import { BonusesPage } from './pages/BonusesPage'
 import { CoursesPage } from './pages/CoursesPage'
 import { DashboardPage } from './pages/DashboardPage'
@@ -26,6 +27,7 @@ export function AdminApp() {
         }
       >
         <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="courses" element={<CoursesPage />} />
         <Route path="promo" element={<PromoCodesPage />} />
         <Route path="bonuses" element={<BonusesPage />} />

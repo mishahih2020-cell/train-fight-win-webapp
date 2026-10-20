@@ -12,6 +12,7 @@ import { weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { buildAiReply, buildQuickActionReply } from '@/lib/aiCoach'
 import { haptic } from '@/lib/haptics'
+import { track } from '@/lib/analytics'
 import { summarizeWeight } from '@/lib/weight'
 import type { ChatMessageData } from '@/types'
 
@@ -136,12 +137,14 @@ export function AICoachPage() {
     if (!text) return
     setExtraMessages((m) => [...m, { id: `u${Date.now()}`, from: 'user', text }])
     setDraft('')
+    track('ai_coach_message')
     respond(buildAiReply(text, context, language))
   }
 
   const sendQuickAction = (actionId: string, label: string) => {
     haptic('light')
     setExtraMessages((m) => [...m, { id: `u${Date.now()}`, from: 'user', text: label }])
+    track('ai_coach_message', { quickAction: actionId })
     respond(buildQuickActionReply(actionId, context, language))
   }
 

@@ -14,6 +14,7 @@ import { useRepoList } from '@/db/useRepo'
 import { useAppState } from '@/context/AppStateContext'
 import { useT } from '@/i18n/useT'
 import { formatClock } from '@/hooks/useCountdown'
+import { track } from '@/lib/analytics'
 import { primeAudio } from '@/lib/sound'
 import { DEFAULT_REST_SEC, DEFAULT_ROUNDS, DEFAULT_ROUND_SEC } from '@/lib/session'
 import { formatRelativeDate } from '@/lib/weight'
@@ -67,6 +68,7 @@ export function WorkoutsPage() {
 
   const startQuickTimer = () => {
     primeAudio()
+    track('timer_start', { rounds, roundSec, restSec })
     navigate('/workouts/session', { state: { rounds, roundSec, restSec, isQuickTimer: true } })
   }
 

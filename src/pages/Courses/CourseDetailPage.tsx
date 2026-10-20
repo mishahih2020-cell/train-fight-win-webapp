@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Header } from '@/components/navigation/Header'
@@ -9,6 +9,7 @@ import { useAppState } from '@/context/AppStateContext'
 import { useT } from '@/i18n/useT'
 import { awardBonus, coursesRepo, ordersRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
+import { track } from '@/lib/analytics'
 import { primeAudio } from '@/lib/sound'
 
 export function CourseDetailPage() {
@@ -22,6 +23,10 @@ export function CourseDetailPage() {
   const [justBought, setJustBought] = useState(false)
   const [purchasing, setPurchasing] = useState(false)
   const [purchaseError, setPurchaseError] = useState(false)
+
+  useEffect(() => {
+    if (course) track('course_view', { courseId: course.id })
+  }, [course])
 
   if (!course) {
     if (!loaded) return null
@@ -56,6 +61,7 @@ export function CourseDetailPage() {
       // unlocked with nothing to show for it.
       await coursesRepo.update(course.id, { purchased: true, progress: 0 })
       await awardBonus(50, `Покупка курса «${course.title}»`)
+      track('course_purchase', { courseId: course.id, amount: course.price })
       addSpin(1)
       setConfirmOpen(false)
       setJustBought(true)

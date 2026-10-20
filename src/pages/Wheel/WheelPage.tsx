@@ -8,6 +8,7 @@ import { useT } from '@/i18n/useT'
 import { awardBonus, wheelSegmentsRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { haptic } from '@/lib/haptics'
+import { track } from '@/lib/analytics'
 
 export function WheelPage() {
   const { wheelSpinsLeft, spendSpin } = useAppState()
@@ -22,6 +23,7 @@ export function WheelPage() {
     if (spinning || wheelSpinsLeft <= 0 || segments.length === 0) return
     haptic('medium')
     spendSpin()
+    track('wheel_spin')
     setSpinning(true)
     const segIndex = Math.floor(Math.random() * segments.length)
     const segAngle = 360 / segments.length

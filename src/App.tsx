@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { AppStateProvider, useAppState } from '@/context/AppStateContext'
+import { track } from '@/lib/analytics'
 import { AdminApp } from '@/admin/AdminApp'
 import { TabLayout } from '@/components/navigation/TabLayout'
 import { OnboardingPage } from '@/pages/Onboarding/OnboardingPage'
@@ -152,11 +153,21 @@ function useTelegramBackButton() {
   }, [location.pathname, navigate])
 }
 
+/** Fires once per app launch — the signal the daily digest's DAU/streak numbers are built on. */
+function useAppOpenTracking() {
+  useEffect(() => {
+    track('app_open')
+    // Once per mount only — this component mounts once per app launch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+}
+
 function AppRoutes() {
   useTelegramInit()
   useTelegramIdentityPrefill()
   useTelegramContentSafeArea()
   useTelegramBackButton()
+  useAppOpenTracking()
 
   return (
     <Routes>

@@ -11,6 +11,7 @@ import { coursesRepo, workoutLogRepo } from '@/db/repos'
 import { useRoundTimer } from '@/hooks/useRoundTimer'
 import { formatClock } from '@/hooks/useCountdown'
 import { haptic } from '@/lib/haptics'
+import { track } from '@/lib/analytics'
 import { DEFAULT_REST_SEC, DEFAULT_ROUNDS, DEFAULT_ROUND_SEC, type SessionNavState } from '@/lib/session'
 import { playComplete, playCountdownTick, playRoundEnd, playRoundStart, playWarning, primeAudio } from '@/lib/sound'
 
@@ -66,14 +67,16 @@ export function WorkoutSessionPage() {
 
   const finishWorkout = async () => {
     if (!navState.isQuickTimer) {
+      const category = navState.category ?? 'other'
       await workoutLogRepo.add({
         id: `wl${Date.now()}`,
         title: navState.workoutName ?? t('createWorkout.title'),
-        category: navState.category ?? 'other',
+        category,
         date: new Date().toISOString().slice(0, 10),
         durationSec: timer.elapsedSec,
         exerciseCount: timer.rounds,
       })
+      track('workout_complete', { category, durationSec: timer.elapsedSec })
 
       if (navState.courseId) {
         const course = await coursesRepo.get(navState.courseId)
@@ -82,6 +85,8 @@ export function WorkoutSessionPage() {
           await coursesRepo.update(course.id, { progress: nextProgress })
         }
       }
+    } else {
+      track('timer_complete', { durationSec: timer.elapsedSec })
     }
 
     navigate('/workouts')

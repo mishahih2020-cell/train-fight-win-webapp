@@ -15,6 +15,7 @@ import { mealsRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { useAppState } from '@/context/AppStateContext'
 import { useT } from '@/i18n/useT'
+import { track } from '@/lib/analytics'
 import { calorieRingColor } from '@/lib/nutrition'
 import { readAndDownscaleImage } from '@/lib/image'
 import {
@@ -127,6 +128,7 @@ export function NutritionPage() {
     mealsRepo
       .add({ id: `photo-${Date.now()}`, date: today, name: 'snack', title, time, kcal, photoUrl: pendingPhoto.url, note: note || undefined })
       .then(reload)
+    track('nutrition_log', { kcal })
     setPendingPhoto(null)
     setPhotoNote('')
   }
