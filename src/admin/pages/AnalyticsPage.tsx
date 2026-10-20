@@ -7,20 +7,23 @@ import { ConfirmDeleteButton } from '@/components/ui/ConfirmDeleteButton'
 import { API_BASE, apiFetch } from '@/lib/apiClient'
 
 interface Summary {
-  newUsersToday: number
-  dau: number
+  newUsersInPeriod: number
+  dauInPeriod: number
   wau: number
   mau: number
   totalUsers: number
-  eventsToday: number
-  timerStartsToday: number
-  courseViewsToday: number
-  purchasesToday: number
-  revenueToday: number
+  eventsInPeriod: number
+  timerStartsInPeriod: number
+  courseViewsInPeriod: number
+  purchasesInPeriod: number
+  revenueInPeriod: number
   activeSubscriptions: number
   topCategories: { category: string; n: string }[]
   activeStreaks3Plus: number
 }
+
+type Period = 'day' | 'week' | 'month'
+const PERIOD_LABEL: Record<Period, string> = { day: 'За день', week: 'За неделю', month: 'За месяц' }
 
 interface Recipient {
   id: number
@@ -52,11 +55,12 @@ export function AnalyticsPage() {
   const [sendResult, setSendResult] = useState<string | null>(null)
   const [newChatId, setNewChatId] = useState('')
   const [newLabel, setNewLabel] = useState('')
+  const [period, setPeriod] = useState<Period>('day')
 
-  const loadAll = async () => {
+  const loadAll = async (p: Period = period) => {
     try {
       const [s, r, c, st] = await Promise.all([
-        getJson<Summary>('/api/admin/analytics/summary'),
+        getJson<Summary>(`/api/admin/analytics/summary?period=${p}`),
         getJson<Recipient[]>('/api/admin/recipients'),
         getJson<BotContact[]>('/api/admin/bot-contacts'),
         getJson<Record<string, unknown>>('/api/admin/settings'),
@@ -82,6 +86,11 @@ export function AnalyticsPage() {
     else setLoaded(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const changePeriod = (p: Period) => {
+    setPeriod(p)
+    loadAll(p)
+  }
 
   const toggleSetting = async (key: string, value: boolean) => {
     setSettings((s) => ({ ...s, [key]: value }))
@@ -147,7 +156,7 @@ export function AnalyticsPage() {
     return (
       <div className="rounded-[var(--radius-card)] border border-[var(--color-accent)] bg-[var(--color-card)] p-4 text-center">
         <p className="text-body-secondary text-[var(--color-text)]">Не получилось загрузить аналитику.</p>
-        <button onClick={loadAll} className="text-caption mt-2 font-medium text-[var(--color-accent)] underline underline-offset-4">
+        <button onClick={() => loadAll()} className="text-caption mt-2 font-medium text-[var(--color-accent)] underline underline-offset-4">
           Повторить
         </button>
       </div>
@@ -155,23 +164,40 @@ export function AnalyticsPage() {
   }
 
   const stats = [
-    { label: 'Активны сегодня (DAU)', value: summary.dau },
+    { label: 'Активны в периоде', value: summary.dauInPeriod },
     { label: 'Активны за 7 дней (WAU)', value: summary.wau },
     { label: 'Активны за 30 дней (MAU)', value: summary.mau },
-    { label: 'Новых сегодня', value: summary.newUsersToday },
+    { label: 'Новых в периоде', value: summary.newUsersInPeriod },
     { label: 'Всего пользователей', value: summary.totalUsers },
     { label: 'Стрик 3+ дня', value: summary.activeStreaks3Plus },
-    { label: 'Запусков таймера сегодня', value: summary.timerStartsToday },
-    { label: 'Просмотров курсов сегодня', value: summary.courseViewsToday },
-    { label: 'Покупок сегодня', value: summary.purchasesToday },
-    { label: 'Выручка сегодня', value: `${summary.revenueToday.toLocaleString('ru-RU')} ₽` },
+    { label: 'Запусков таймера', value: summary.timerStartsInPeriod },
+    { label: 'Просмотров курсов', value: summary.courseViewsInPeriod },
+    { label: 'Покупок', value: summary.purchasesInPeriod },
+    { label: 'Выручка', value: `${summary.revenueInPeriod.toLocaleString('ru-RU')} ₽` },
     { label: 'Активных подписок AI Coach', value: summary.activeSubscriptions },
   ]
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-h2 mb-3 text-[var(--color-text)]">Сводка за сегодня</h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-h2 text-[var(--color-text)]">Сводка</h2>
+          <div className="flex gap-1.5">
+            {(['day', 'week', 'month'] as Period[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => changePeriod(p)}
+                className={`text-caption h-8 rounded-[var(--radius-button)] px-3 font-semibold ${
+                  period === p
+                    ? 'gradient-accent text-white'
+                    : 'border border-[var(--color-divider)] bg-[var(--color-card)] text-[var(--color-text-secondary)]'
+                }`}
+              >
+                {PERIOD_LABEL[p]}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           {stats.map((s) => (
             <Card key={s.label}>
@@ -182,16 +208,24 @@ export function AnalyticsPage() {
         </div>
         {summary.topCategories.length > 0 && (
           <p className="text-caption mt-3 text-[var(--color-text-tertiary)]">
-            Топ категорий тренировок (7 дней): {summary.topCategories.map((c) => `${c.category} (${c.n})`).join(', ')}
+            Топ категорий тренировок: {summary.topCategories.map((c) => `${c.category} (${c.n})`).join(', ')}
           </p>
         )}
       </div>
 
       <div>
-        <h2 className="text-h2 mb-3 text-[var(--color-text)]">Ежедневный отчёт в Telegram</h2>
+        <h2 className="text-h2 mb-3 text-[var(--color-text)]">Отчёты в Telegram</h2>
         <Card className="flex items-center justify-between">
-          <span className="text-body-secondary text-[var(--color-text)]">Автоматическая ежедневная отправка</span>
+          <span className="text-body-secondary text-[var(--color-text)]">Ежедневный (00:00 МСК)</span>
           <Switch checked={Boolean(settings.daily_report_enabled)} onChange={(v) => toggleSetting('daily_report_enabled', v)} />
+        </Card>
+        <Card className="mt-3 flex items-center justify-between">
+          <span className="text-body-secondary text-[var(--color-text)]">Еженедельный (вс 00:00 МСК)</span>
+          <Switch checked={Boolean(settings.weekly_report_enabled)} onChange={(v) => toggleSetting('weekly_report_enabled', v)} />
+        </Card>
+        <Card className="mt-3 flex items-center justify-between">
+          <span className="text-body-secondary text-[var(--color-text)]">Ежемесячный (посл. день, 18:00 МСК)</span>
+          <Switch checked={Boolean(settings.monthly_report_enabled)} onChange={(v) => toggleSetting('monthly_report_enabled', v)} />
         </Card>
         <Card className="mt-3 flex items-center justify-between">
           <span className="text-body-secondary text-[var(--color-text)]">Напоминания о курсе пользователям</span>
@@ -199,8 +233,12 @@ export function AnalyticsPage() {
         </Card>
 
         <Button variant="secondary" className="mt-3" disabled={sending || recipients.length === 0} onClick={sendNow}>
-          {sending ? 'Отправляю…' : 'Отправить отчёт прямо сейчас'}
+          {sending ? 'Отправляю…' : 'Отправить дневной отчёт прямо сейчас'}
         </Button>
+        <p className="text-caption mt-2 text-[var(--color-text-tertiary)]">
+          Полное меню со статистикой/продажами/рассылкой по кнопкам — прямо в Telegram-боте, командой /admin (видно только
+          зарегистрированным получателям ниже).
+        </p>
         {sendResult && <p className="text-caption mt-2 text-[var(--color-text-tertiary)]">{sendResult}</p>}
         {recipients.length === 0 && (
           <p className="text-caption mt-2 text-[var(--color-text-tertiary)]">
