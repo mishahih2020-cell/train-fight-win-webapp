@@ -15,6 +15,7 @@ import { mealsRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { useAppState } from '@/context/AppStateContext'
 import { useT } from '@/i18n/useT'
+import { API_BASE, apiFetch } from '@/lib/apiClient'
 import { track } from '@/lib/analytics'
 import { calorieRingColor } from '@/lib/nutrition'
 import { readAndDownscaleImage } from '@/lib/image'
@@ -52,6 +53,7 @@ export function NutritionPage() {
 
   const [pendingPhoto, setPendingPhoto] = useState<{ url: string } | null>(null)
   const [photoNote, setPhotoNote] = useState('')
+  const [recognizing, setRecognizing] = useState(false)
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null)
   const [viewDate, setViewDate] = useState<string | null>(null)
   const weeksScrollRef = useRef<HTMLDivElement>(null)
@@ -117,11 +119,39 @@ export function NutritionPage() {
     setPhotoNote('')
   }
 
-  const savePhotoMeal = () => {
-    if (!pendingPhoto) return
+  // Local mode (no backend yet): a random placeholder dish/calorie count —
+  // this is the current production build's behaviour. Remote mode: a real
+  // Gemini photo recognition, done server-side (see
+  // server/src/routes/nutrition.ts) so the API key never reaches the
+  // client; falls back to the same random placeholder if that fails.
+  const savePhotoMeal = async () => {
+    if (!pendingPhoto || recognizing) return
+    const note = photoNote.trim()
+
+    if (API_BASE) {
+      setRecognizing(true)
+      try {
+        const res = await apiFetch('/api/nutrition/recognize', {
+          method: 'POST',
+          body: JSON.stringify({ photoDataUrl: pendingPhoto.url, note: note || undefined, date: today }),
+        })
+        if (res.ok) {
+          const meal = await res.json()
+          track('nutrition_log', { kcal: meal.kcal, recognized: meal.recognized })
+          reload()
+          setPendingPhoto(null)
+          setPhotoNote('')
+          return
+        }
+      } catch {
+        // falls through to the local placeholder below
+      } finally {
+        setRecognizing(false)
+      }
+    }
+
     const now = new Date()
     const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-    const note = photoNote.trim()
     const dishNames = MOCK_DISH_NAMES[language]
     const title = note || dishNames[Math.floor(Math.random() * dishNames.length)]
     const kcal = 350 + Math.floor(Math.random() * 300)
@@ -302,8 +332,8 @@ export function NutritionPage() {
           <Input label={t('nutrition.note')} placeholder={t('nutrition.notePlaceholder')} value={photoNote} onChange={(e) => setPhotoNote(e.target.value)} />
           <p className="text-caption mt-1.5 text-[var(--color-text-tertiary)]">{t('nutrition.noteHint')}</p>
         </div>
-        <Button variant="primary" className="mt-5" onClick={savePhotoMeal}>
-          {t('common.save')}
+        <Button variant="primary" className="mt-5" disabled={recognizing} onClick={savePhotoMeal}>
+          {recognizing ? t('nutrition.recognizing') : t('common.save')}
         </Button>
       </Modal>
 

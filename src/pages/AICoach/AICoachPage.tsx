@@ -11,6 +11,7 @@ import { useT } from '@/i18n/useT'
 import { weightRepo, workoutLogRepo } from '@/db/repos'
 import { useRepoList } from '@/db/useRepo'
 import { buildAiReply, buildQuickActionReply } from '@/lib/aiCoach'
+import { API_BASE, apiFetch } from '@/lib/apiClient'
 import { haptic } from '@/lib/haptics'
 import { track } from '@/lib/analytics'
 import { summarizeWeight } from '@/lib/weight'
@@ -124,12 +125,31 @@ export function AICoachPage() {
 
   if (!isPro) return <AICoachPaywall />
 
-  const respond = (replyText: string) => {
+  // Local mode (no backend yet): instant canned reply after a short fake
+  // "typing" delay — this is the behaviour of the current production
+  // build. Remote mode: a real AI reply from the backend (see
+  // server/src/routes/aiCoach.ts), with the canned reply only as a
+  // fallback if that request fails.
+  const respondLocal = (replyText: string) => {
     setTyping(true)
     window.setTimeout(() => {
       setTyping(false)
       setExtraMessages((m) => [...m, { id: `ai${Date.now()}`, from: 'ai', text: replyText }])
     }, REPLY_DELAY_MS)
+  }
+
+  const respondRemote = async (userText: string, fallbackReply: string) => {
+    setTyping(true)
+    try {
+      const res = await apiFetch('/api/ai-coach/message', { method: 'POST', body: JSON.stringify({ text: userText }) })
+      const data = res.ok ? await res.json() : null
+      const replyText = typeof data?.reply === 'string' ? data.reply : fallbackReply
+      setExtraMessages((m) => [...m, { id: `ai${Date.now()}`, from: 'ai', text: replyText }])
+    } catch {
+      setExtraMessages((m) => [...m, { id: `ai${Date.now()}`, from: 'ai', text: fallbackReply }])
+    } finally {
+      setTyping(false)
+    }
   }
 
   const send = () => {
@@ -138,14 +158,17 @@ export function AICoachPage() {
     setExtraMessages((m) => [...m, { id: `u${Date.now()}`, from: 'user', text }])
     setDraft('')
     track('ai_coach_message')
-    respond(buildAiReply(text, context, language))
+    if (API_BASE) void respondRemote(text, buildAiReply(text, context, language))
+    else respondLocal(buildAiReply(text, context, language))
   }
 
   const sendQuickAction = (actionId: string, label: string) => {
     haptic('light')
     setExtraMessages((m) => [...m, { id: `u${Date.now()}`, from: 'user', text: label }])
     track('ai_coach_message', { quickAction: actionId })
-    respond(buildQuickActionReply(actionId, context, language))
+    const fallback = buildQuickActionReply(actionId, context, language)
+    if (API_BASE) void respondRemote(label, fallback)
+    else respondLocal(fallback)
   }
 
   return (
